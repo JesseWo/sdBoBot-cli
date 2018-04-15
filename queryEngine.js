@@ -12,7 +12,7 @@ var readlineSync = require('readline-sync');
  */
 function query(questionBank, subjectInfoList) {
     let answerList = [];
-    let failureList = [];
+    let failureMap = new Map();
     //遍历试题
     for (let i = 0; i < subjectInfoList.length; i++) {
         const subjectInfo = subjectInfoList[i];
@@ -95,18 +95,19 @@ function query(questionBank, subjectInfoList) {
             answer.answer = correctedOpts;
             answerList.push(answer);
         } else {
-            failureList.push(subjectInfo);
+            failureMap.set(i, subjectInfo);
             log.e('答案查询失败!\n');
         }
     }
     //将自动查询失败的问题 显示给用户,并手动输入答案
-    if (failureList.length > 0) {
+    if (failureMap.size > 0) {
         //汇总记录查询失败的问题
         const failureCollector = JSON.parse(fs.readFileSync('./train_data/failureList.json', 'utf-8'));
         let collectorList = failureCollector.data.subjectInfoList;
         let newList = [];
-        for (const item of failureList) {
+        failureMap.forEach((value, key, map) => {
             //去重
+            let item = value;
             let repeat = false;
             for (const collectorItem of collectorList) {
                 if (item.id == collectorItem.id) {
@@ -117,7 +118,7 @@ function query(questionBank, subjectInfoList) {
             if (!repeat) {
                 newList.push(item);
             }
-        }
+        });
         if (newList.length > 0) {
             failureCollector.data.subjectInfoList = collectorList.concat(newList);
             fs.writeFile('./train_data/failureList.json', JSON.stringify(failureCollector), (err) => {
@@ -129,13 +130,15 @@ function query(questionBank, subjectInfoList) {
             });
         }
 
-        log.e(`${failureList.length}个问题查询失败!\n`)
-        for (const item of failureList) {
+        log.e(`有${failureMap.size}个问题查询失败!\n`)
+        failureMap.forEach((value, key, map) => {
+            let index = key;
+            let item = value;
             const subjectTitle = item.subjectTitle;
             const subjectType = item.subjectType;
             const optionInfoList = item.optionInfoList;
 
-            log.i(`[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
+            log.i(`${index + 1}.[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
             optionInfoList.forEach(opt => log.i(`${opt.optionType}.${opt.optionTitle}`));
 
             let inputStr = readlineSync.question('请输入答案(示例: 若单选则输入 A ;若多选则输入 ABC): ').trim().toUpperCase();
@@ -159,8 +162,9 @@ function query(questionBank, subjectInfoList) {
             let answer = {};
             answer.id = item.id;
             answer.answer = correctedOpts;
-            answerList.push(answer);
-        }
+            //按照原来的顺序插入元素
+            answerList.splice(index, 0, answer);
+        });
     }
     return answerList;
 }
