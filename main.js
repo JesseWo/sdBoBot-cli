@@ -61,7 +61,7 @@ function mockHumanBehaviors(totalSubject) {
  * POST http://xxjs.dtdjzx.gov.cn/quiz-api/chapter_info/countScore
  * 
  * 机器人校验
- * 1. 记录鼠标左键所有点击的坐标
+ * 1. 记录点击[下一题按钮]的坐标
  * 2. 记录重复X坐标的次数
  * 
  * @param {答题数据} result 
@@ -78,7 +78,7 @@ function submit(result) {
     };
     httpRequst(options, jString, (data) => {
         if (data.code == 200 && data.success) {
-            log.d(`交卷成功! ${data}`);
+            log.d(`交卷成功! ${JSON.stringify(data)}`);
 
             var w_tt = data.data.useTime.split(':');
             var w_ttii;
@@ -89,10 +89,10 @@ function submit(result) {
             } else {
                 w_ttii = w_tt[2] + "秒";
             }
-            w_key = data.data.recordId;
+            let recordId = data.data.recordId;
 
-            log.d(`分数:${data.data.totalScore}, 用时${w_ttii}`);
-            log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, overPercen: ${data.data.overPercen}`);
+            log.d(`总分:${data.data.totalScore}, 用时${w_ttii}`);
+            log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, 超过了${data.data.overPercen}的人`);
 
         } else {
             log.e(`交卷失败! ${data.code} Error ${data.msg}`);
