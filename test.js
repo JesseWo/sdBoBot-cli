@@ -1,13 +1,12 @@
 'use strict';
 
-const TAG = 'test';
 var fs = require('fs');
 var query = require('./queryEngine');
 var log = require('./utils/logUtils');
 
+const trainDataPath = 'train_data/subjectInfoList-20180415_18-36-28.json';
+
 let questionBank = JSON.parse(fs.readFileSync('analytics/questionBank.json', 'utf-8'));
-let subjectInfo = JSON.parse(fs.readFileSync('analytics/subjectInfoList.json', 'utf-8'));
+let subjectInfo = JSON.parse(fs.readFileSync(trainDataPath, 'utf-8'));
 let answerList = query(questionBank.data.subjectInfoList, subjectInfo.data.subjectInfoList);
-
-log(TAG, answerList);
-
+log.d(JSON.stringify(answerList));

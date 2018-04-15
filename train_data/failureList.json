@@ -1,0 +1,52 @@
+{
+    "msg": "操作成功!",
+    "code": 200,
+    "success": true,
+    "data": {
+        "recordId": "p2b86mvpa0iamornn6t4k2e3k2",
+        "subjectInfoList": [
+            {
+                "id": "7v0lcv119mhrfro37b27ee1fc2",
+                "orderId": 86,
+                "roundId": null,
+                "roundOnlyId": "0fUnTW9QIZTmKI56nd-Ei1",
+                "chapterId": null,
+                "subjectTitle": "中央和地方国家机关、人民团体、经济组织、文化组织、社会组织和其他组织领导机关中，有党员领导成员3人以上的，经批准可以设立（）。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "744umtd1g0h17pg1ta447sb5nb",
+                        "optionTitle": "党支部",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "6msjf4h3r4hg4pp18bk967e03u",
+                        "optionTitle": "党组",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "s7lb5ap2uoirkqknldi62ebfj5",
+                        "optionTitle": "党委",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "v1psfa4piqionrcvu0ikc12ipo",
+                        "optionTitle": "领导小组",
+                        "optionType": "D"
+                    }
+                ]
+            }
+        ],
+        "roundOnlyId": "_JVQ73f8Ibelqxq9Bq0-j2",
+        "orderId": 359,
+        "totalSubject": 20
+    }
+}

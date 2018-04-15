@@ -1,7 +1,5 @@
 'use strict';
 
-const TAG = 'main';
-
 const httpRequst = require('./httpRequst');
 const answerQuery = require('./queryEngine');
 const querystring = require('querystring');
@@ -62,7 +60,7 @@ function submit(result) {
     };
     httpRequst(options, jString, (data) => {
         if (data.code == 200 && data.success) {
-            log(TAG, `交卷成功! ${data}`);
+            log.d(`交卷成功! ${data}`);
 
             var w_tt = data.data.useTime.split(':');
             var w_ttii;
@@ -75,11 +73,11 @@ function submit(result) {
             }
             w_key = data.data.recordId;
 
-            log(TAG, `分数:${data.data.totalScore}, 用时${w_ttii}`);
-            log(TAG, `正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, overPercen: ${data.data.overPercen}`);
+            log.d(`分数:${data.data.totalScore}, 用时${w_ttii}`);
+            log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, overPercen: ${data.data.overPercen}`);
 
         } else {
-            log(TAG, `${data.code} Error ${data.msg}`);
+            log.e(`${data.code} Error ${data.msg}`);
         }
     });
 }
@@ -106,7 +104,7 @@ function getQuestionBank(chapterId, next) {
     };
     httpRequst(options, '', (data) => {
         if (data.code == 200 && data.success) {
-            log(TAG, `获取 [${data.data.chapterTitle}] 题库, 共计${data.data.totalSubject}题.`);
+            log.d(`获取 [${data.data.chapterTitle}] 题库, 共计${data.data.totalSubject}题.`);
             const subjectInfoList = data.data.subjectInfoList;
 
             next(subjectInfoList);
@@ -132,15 +130,15 @@ function getSubjectInfoList(questionBank) {
     httpRequst(options, '', (data) => {
         //缓存试题
         let jString = JSON.stringify(data);
-        fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, data, (err) => {
+        fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
             if (err) {
-                log(TAG, err);
+                log.e(err);
             } else {
-                log(TAG, '试题缓存ok.');
+                log.d('试题缓存ok.');
             }
         });
         if (data.code == 200 && data.success) {
-            log(TAG, `开始答题, 共计${data.data.totalSubject}题.`);
+            log.d(`开始答题, 共计${data.data.totalSubject}题.`);
             const subjectInfoList = data.data.subjectInfoList;
             //查询答案
             let answerList = answerQuery(questionBank, subjectInfoList);
@@ -158,21 +156,21 @@ function getSubjectInfoList(questionBank) {
             rl.question('是否交卷? (Y/N)', (answer) => {
                 if (answer.toUpperCase == 'Y') {
                     rl.question('请输入交卷延时(建议大于15秒):', (answer) => {
-                        log(TAG, `${answer}秒后自动交卷...`);
+                        log.d(`${answer}秒后自动交卷...`);
                         rl.close();
                         // setTimeout(() => submit(result), answer * 1000);
                     });
                 } else if (answer.toUpperCase == 'N') {
-                    log(TAG, '暂不交卷...');
+                    log.d('暂不交卷...');
                     rl.close();
                 } else {
-                    log(TAG, '输入错误, 暂不交卷...');
+                    log.e('输入错误, 暂不交卷...');
                     rl.close();
                 }
             });
 
         } else {
-            log(TAG, `${data.code} Error ${data.msg}`);
+            log.e(`${data.code} Error ${data.msg}`);
         }
     });
 

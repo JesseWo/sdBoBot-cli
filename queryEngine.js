@@ -1,5 +1,10 @@
 'use strict';
 
+const log = require('./utils/logUtils');
+const fs = require('fs');
+//控制台键盘输入读取
+var readlineSync = require('readline-sync');
+
 /**
  * 
  * @param {题库} questionBank 
@@ -7,6 +12,7 @@
  */
 function query(questionBank, subjectInfoList) {
     let answerList = [];
+    let failureList = [];
     //遍历试题
     for (let i = 0; i < subjectInfoList.length; i++) {
         const subjectInfo = subjectInfoList[i];
@@ -14,7 +20,7 @@ function query(questionBank, subjectInfoList) {
         const subjectType = subjectInfo.subjectType;
         const optionInfoList = subjectInfo.optionInfoList;
 
-        console.log(`${i + 1}.[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
+        log.i(`${i + 1}.[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
 
         //遍历题库查询答案
         let correctOptionArr;
@@ -27,7 +33,11 @@ function query(questionBank, subjectInfoList) {
                 let correctAnswerOptsArr = answerSubjectInfo.optionInfoList.filter((element) => element.isRight == '1');
                 correctOptionArr = optionInfoList.filter((element) => {
                     for (const correctAnswerOption of correctAnswerOptsArr) {
-                        if (element.optionTitle == correctAnswerOption.optionTitle) {
+                        //去除选项中的特殊字符, 然后进行匹配
+                        const optsRegex = /[ ,.，。、\(\)]/g;
+                        let a = element.optionTitle.replace(optsRegex, '');
+                        let b = correctAnswerOption.optionTitle.replace(optsRegex, '');
+                        if (a == b) {
                             return true;
                         }
                     }
@@ -37,7 +47,8 @@ function query(questionBank, subjectInfoList) {
             }
         }
         //step2: ()截断匹配
-        if (!correctOptionArr) {
+        if (!correctOptionArr || correctOptionArr.length == 0) {
+            log.d('完全匹配失败, 尝试截断模糊匹配...');
             for (let j = 0; j < questionBank.length; j++) {
                 const answerSubjectInfo = questionBank[j];
                 const answerSubjectTitle = answerSubjectInfo.subjectTitle;
@@ -47,26 +58,24 @@ function query(questionBank, subjectInfoList) {
                     if (answerSubjectTitle.startsWith(queryArr[0])) {
                         let tmp = answerSubjectTitle.substring(queryArr[0].length);
                         correctOptionArr = optionInfoList.filter((element) => tmp.startsWith(element.optionTitle));
-                        break;
+                        if (correctOptionArr) break;
                     } else if (answerSubjectTitle.endsWith(queryArr[1])) {
                         let tmp = answerSubjectTitle.substring(0, answerSubjectTitle.length - queryArr[1].length);
                         correctOptionArr = optionInfoList.filter((element) => tmp.endsWith(element.optionTitle));
-                        break;
+                        if (correctOptionArr) break;
                     }
                 }
             }
         }
-        let correctedOpts;
-        if (correctOptionArr) {
+        if (correctOptionArr && correctOptionArr.length > 0) {
             //查询成功
-            // console.log(correctOptionArr);
-
             let correctedOptsArr = [];
             let correctedOptsDetailArr = [];
             for (const iterator of correctOptionArr) {
                 correctedOptsArr.push(iterator.optionType);
                 correctedOptsDetailArr.push(`${iterator.optionType}. ${iterator.optionTitle}`);
             }
+            let correctedOpts;
             let correctedOptsDetails;
             if (correctOptionArr.length > 1) {
                 //多选
@@ -77,17 +86,77 @@ function query(questionBank, subjectInfoList) {
                 correctedOpts = correctedOptsArr[0];
                 correctedOptsDetails = correctedOptsDetailArr[0];
             }
-            console.log(`答案:${correctedOpts}\n${correctedOptsDetails}\n`);
-        } else {
-            correctedOpts = subjectType == '0' ? 'A' : 'A,B,C,D';
-            console.log('答案查询失败!\n');
-        }
-        //构建查询结果
-        let answer = {};
-        answer.id = subjectInfo.id;
-        answer.answer = correctedOpts;
-        answerList.push(answer);
 
+            log.i(`答案:${correctedOpts}\n${correctedOptsDetails}\n`);
+
+            //构建查询结果
+            let answer = {};
+            answer.id = subjectInfo.id;
+            answer.answer = correctedOpts;
+            answerList.push(answer);
+        } else {
+            failureList.push(subjectInfo);
+            log.e('答案查询失败!\n');
+        }
+    }
+    //将自动查询失败的问题 显示给用户,并手动输入答案
+    if (failureList.length > 0) {
+        //汇总记录查询失败的问题
+        const failureCollector = JSON.parse(fs.readFileSync('./train_data/failureList.json', 'utf-8'));
+        let collectorList = failureCollector.data.subjectInfoList;
+        for (const item of failureList) {
+            //去重
+            let repeat = false;
+            for (const collectorItem of collectorList) {
+                if (item.id == collectorItem.id) {
+                    repeat = true;
+                    break;
+                }
+            }
+            if (!repeat) {
+                collectorList.push(item);
+            }
+        }
+        fs.writeFile('./train_data/failureList.json', JSON.stringify(failureCollector), (err) => {
+            if (err) {
+                log.e(err);
+            } else {
+                log.d('查询失败的试题缓存ok.');
+            }
+        });
+
+        log.e(`${failureList.length}个问题查询失败!\n`)
+        for (const item of failureList) {
+            const subjectTitle = item.subjectTitle;
+            const subjectType = item.subjectType;
+            const optionInfoList = item.optionInfoList;
+
+            log.i(`[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
+            optionInfoList.forEach(opt => log.i(`${opt.optionType}.${opt.optionTitle}`));
+
+            let inputStr = readlineSync.question('请输入答案(示例: 若单选则输入 A ;若多选则输入 ABC): ').trim().toUpperCase();
+            // // Handle the secret text (e.g. password).
+            // var favFood = readlineSync.question('What is your favorite food? ', {
+            //     hideEchoBack: true // The typed text on screen is hidden by `*` (default).
+            // });
+            while ((subjectType == '0' && !inputStr.match('[A-G]{1}'))
+                || (subjectType == '1' && !inputStr.match(`[A-G]{1,${optionInfoList.length}}$`))) {
+                inputStr = readlineSync.question('输入格式错误, 请重新输入:').trim().toUpperCase();
+            }
+            let correctedOpts = '';
+            for (let i = 0; i < inputStr.length; i++) {
+                correctedOpts += inputStr.charAt(i);
+                if (i != inputStr.length - 1) {
+                    correctedOpts += ',';
+                }
+            }
+            log.w(`您输入的是: ${correctedOpts}\n`);
+            //构建手动输入的结果
+            let answer = {};
+            answer.id = item.id;
+            answer.answer = correctedOpts;
+            answerList.push(answer);
+        }
     }
     return answerList;
 }
