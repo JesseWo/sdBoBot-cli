@@ -3,7 +3,10 @@
 const log = require('./utils/logUtils');
 const fs = require('fs');
 //控制台键盘输入读取
-var readlineSync = require('readline-sync');
+let readlineSync = require('readline-sync');
+
+//错题集
+let failureMap = new Map();
 
 /**
  * 
@@ -12,7 +15,7 @@ var readlineSync = require('readline-sync');
  */
 function query(questionBank, subjectInfoList) {
     let answerList = [];
-    let failureMap = new Map();
+    failureMap.clear();
     //遍历试题
     for (let i = 0; i < subjectInfoList.length; i++) {
         const subjectInfo = subjectInfoList[i];
@@ -158,6 +161,15 @@ function query(questionBank, subjectInfoList) {
                 }
             }
             log.w(`您输入的是: ${correctedOpts}\n`);
+            //将输入的答案添加到错题集里
+            item.answer = correctedOpts;
+            for (let i = 0; i < inputStr.length; i++) {
+                let c = inputStr.charAt(i);
+                optionInfoList.forEach(opt => {
+                    if (opt.optionType == c) opt.isRight = '1';
+                });
+            }
+
             //构建手动输入的结果
             let answer = {};
             answer.id = item.id;
@@ -169,4 +181,7 @@ function query(questionBank, subjectInfoList) {
     return answerList;
 }
 
-module.exports = query;
+module.exports = {
+    query: query,
+    failureMap: failureMap
+};

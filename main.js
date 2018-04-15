@@ -1,7 +1,9 @@
 'use strict';
 
+const debug = false;
+
 const httpRequst = require('./httpRequst');
-const answerQuery = require('./queryEngine');
+const queryEngine = require('./queryEngine');
 const querystring = require('querystring');
 const fs = require('fs');
 const log = require('./utils/logUtils');
@@ -81,17 +83,24 @@ function submit(result) {
             log.d(`交卷成功! ${JSON.stringify(data)}`);
 
             var w_tt = data.data.useTime.split(':');
-            var w_ttii;
+            var useTime;
             if (w_tt[0] !== '00') {
-                w_ttii = w_tt[0] + "小时" + w_tt[1] + "分" + w_tt[2] + "秒";
+                useTime = w_tt[0] + "小时" + w_tt[1] + "分" + w_tt[2] + "秒";
             } else if (w_tt[1] !== '00') {
-                w_ttii = w_tt[1] + "分" + w_tt[2] + "秒";
+                useTime = w_tt[1] + "分" + w_tt[2] + "秒";
             } else {
-                w_ttii = w_tt[2] + "秒";
+                useTime = w_tt[2] + "秒";
             }
             let recordId = data.data.recordId;
+            let totalScore = data.data.totalScore;
 
-            log.d(`总分:${data.data.totalScore}, 用时${w_ttii}`);
+            //满分则上传更新题库
+            if (totalScore == 100 && queryEngine.size > 0) {
+                //todo
+
+            }
+
+            log.d(`总分:${totalScore}, 用时${useTime}`);
             log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, 超过了${data.data.overPercen}的人`);
 
         } else {
@@ -122,10 +131,26 @@ function getQuestionBank(chapterId, next) {
     };
     httpRequst(options, '', (data) => {
         if (data.code == 200 && data.success) {
+            if (!isQuestionBankValid(data)) {
+                log.e('题库已过期!');
+                return;
+            }
             log.d(`获取 [${data.data.chapterTitle}] 题库, 共计${data.data.totalSubject}题.`);
+            //缓存题库
+            let jString = JSON.stringify(data);
+            fs.writeFile(`db/questionBank.json`, jString, (err) => {
+                if (err) {
+                    log.e(err);
+                } else {
+                    log.d('题库缓存ok.');
+                }
+            });
+
             const subjectInfoList = data.data.subjectInfoList;
 
             next(subjectInfoList);
+        } else {
+            log.e(`${data.code} Error ${data.msg}`);
         }
     })
 }
@@ -148,19 +173,22 @@ function getSubjectInfoList(questionBank) {
     httpRequst(options, '', (data) => {
         if (data.code == 200 && data.success) {
             //缓存试题
-            let jString = JSON.stringify(data);
-            fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
-                if (err) {
-                    log.e(err);
-                } else {
-                    log.d('试题缓存ok.');
-                }
-            });
+            if (debug) {
+                let jString = JSON.stringify(data);
+                fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
+                    if (err) {
+                        log.e(err);
+                    } else {
+                        log.d('试题缓存ok.');
+                    }
+                });
+            }
+
 
             log.d(`开始答题, 共计${data.data.totalSubject}题.`);
             const subjectInfoList = data.data.subjectInfoList;
             //查询答案
-            let answerList = answerQuery(questionBank, subjectInfoList);
+            let answerList = queryEngine.query(questionBank, subjectInfoList);
 
             let result = {};
             result.recordId = data.data.recordId;
@@ -174,7 +202,7 @@ function getSubjectInfoList(questionBank) {
 
             let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
             if (answer == 'Y') {
-                let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
+                let delay = readlineSync.question('请输入交卷延时(建议大于10秒):').trim().toUpperCase();
                 log.d(`${delay}秒后自动交卷...`);
                 setTimeout(() => submit(result), delay * 1000);
             } else if (answer == 'N') {
@@ -190,5 +218,25 @@ function getSubjectInfoList(questionBank) {
 
 }
 
-getQuestionBank('qbqkfcn2fuihtqtnvo5t8e3mri', getSubjectInfoList);
+function isQuestionBankValid(qbData) {
+    let chapterTitle = qbData.data.chapterTitle;
+    let startIndex = chapterTitle.indexOf('年') + 1;
+    let endIndex = chapterTitle.indexOf('月');
+    let m = parseInt(chapterTitle.substring(startIndex, endIndex));
+    return new Date().getMonth() + 1 == m;
+}
 
+function main() {
+    if (fs.existsSync('./db/questionBank.json')) {
+        log.d('从缓存读取题库...');
+        let qbData = JSON.parse(fs.readFileSync('db/questionBank.json', 'utf-8'));
+        if (isQuestionBankValid(qbData)) {
+            log.d('检测题库有效.');
+            getSubjectInfoList(qbData.data.subjectInfoList);
+            return;
+        }
+    }
+    getQuestionBank('qbqkfcn2fuihtqtnvo5t8e3mri', getSubjectInfoList);
+}
+
+main();
