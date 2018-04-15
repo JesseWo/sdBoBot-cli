@@ -104,6 +104,7 @@ function query(questionBank, subjectInfoList) {
         //汇总记录查询失败的问题
         const failureCollector = JSON.parse(fs.readFileSync('./train_data/failureList.json', 'utf-8'));
         let collectorList = failureCollector.data.subjectInfoList;
+        let newList = [];
         for (const item of failureList) {
             //去重
             let repeat = false;
@@ -114,16 +115,19 @@ function query(questionBank, subjectInfoList) {
                 }
             }
             if (!repeat) {
-                collectorList.push(item);
+                newList.push(item);
             }
         }
-        fs.writeFile('./train_data/failureList.json', JSON.stringify(failureCollector), (err) => {
-            if (err) {
-                log.e(err);
-            } else {
-                log.d('查询失败的试题缓存ok.');
-            }
-        });
+        if (newList.length > 0) {
+            failureCollector.data.subjectInfoList = collectorList.concat(newList);
+            fs.writeFile('./train_data/failureList.json', JSON.stringify(failureCollector), (err) => {
+                if (err) {
+                    log.e(err);
+                } else {
+                    log.d('更新错题集.');
+                }
+            });
+        }
 
         log.e(`${failureList.length}个问题查询失败!\n`)
         for (const item of failureList) {
