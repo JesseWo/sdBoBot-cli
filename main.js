@@ -6,13 +6,10 @@ const querystring = require('querystring');
 const fs = require('fs');
 const log = require('./utils/logUtils');
 const dateFormat = require('./utils/dateUtils');
+const random = require('./utils/randomUtils');
 
 //控制台键盘输入读取
-const readline = require('readline');
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+var readlineSync = require('readline-sync');
 
 const HOST = 'xxjs.dtdjzx.gov.cn';
 
@@ -26,16 +23,36 @@ const headers = {
 
 /**
  * mock 点击数据
+ * 下一题按钮
+ * 左上角(552,804)
+ * 右下角(644,832)
  */
-function mockHumanBehaviors() {
-    //TODD
+function mockHumanBehaviors(totalSubject) {
+    let clickTimes = totalSubject - 1;
+    let clientXArr = [];
+    let clientXArrY = [];
+    let maxArr = [];
+    let obj = {};
+    for (let i = 0; i < clickTimes; i++) {
+        let x = random(552, 644);
+        clientXArr.push(x);
+        let y = random(804, 832);
+        clientXArrY.push(y);
 
+        if (obj[x]) {
+            obj[x]++
+            maxArr.push(obj[clientXArr[i]]);
+        } else {
+            obj[x] = 1
+        }
+    }
+    maxArr = maxArr.sort(function (x, y) { return x - y });
+    let repeatX = maxArr.length > 0 ? maxArr[maxArr.length - 1] : 0 //重复x 坐标的次数
 
     let humanBehavior = {};
-    humanBehavior.sameNum = 99;
-    humanBehavior.clickX = "23,44,55,66,77,98";
-    humanBehavior.clickY = "12,344,33,22,44,33";
-    humanBehavior.delay = 20.12;
+    humanBehavior.sameNum = repeatX;
+    humanBehavior.clickX = clientXArr.join(',');
+    humanBehavior.clickY = clientXArrY.join(',');
     return humanBehavior;
 }
 
@@ -51,6 +68,7 @@ function mockHumanBehaviors() {
  */
 function submit(result) {
     let jString = JSON.stringify(result);
+    log.d(jString);
     const options = {
         hostname: HOST,
         port: 80,
@@ -77,7 +95,7 @@ function submit(result) {
             log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, overPercen: ${data.data.overPercen}`);
 
         } else {
-            log.e(`${data.code} Error ${data.msg}`);
+            log.e(`交卷失败! ${data.code} Error ${data.msg}`);
         }
     });
 }
@@ -128,16 +146,17 @@ function getSubjectInfoList(questionBank) {
         headers: headers
     };
     httpRequst(options, '', (data) => {
-        //缓存试题
-        let jString = JSON.stringify(data);
-        fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
-            if (err) {
-                log.e(err);
-            } else {
-                log.d('试题缓存ok.');
-            }
-        });
         if (data.code == 200 && data.success) {
+            //缓存试题
+            let jString = JSON.stringify(data);
+            fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
+                if (err) {
+                    log.e(err);
+                } else {
+                    log.d('试题缓存ok.');
+                }
+            });
+
             log.d(`开始答题, 共计${data.data.totalSubject}题.`);
             const subjectInfoList = data.data.subjectInfoList;
             //查询答案
@@ -148,26 +167,21 @@ function getSubjectInfoList(questionBank) {
             result.roundOnlyId = data.data.roundOnlyId;
             result.orderId = data.data.orderId;
             result.subjectInfoList = answerList;
-            let humanBehavior = mockHumanBehaviors();
+            let humanBehavior = mockHumanBehaviors(data.data.totalSubject);
             result.sameNum = humanBehavior.sameNum;
             result.clickX = humanBehavior.clickX;
             result.clickY = humanBehavior.clickY;
 
-            rl.question('是否交卷? (Y/N)', (answer) => {
-                if (answer.toUpperCase == 'Y') {
-                    rl.question('请输入交卷延时(建议大于15秒):', (answer) => {
-                        log.d(`${answer}秒后自动交卷...`);
-                        rl.close();
-                        // setTimeout(() => submit(result), answer * 1000);
-                    });
-                } else if (answer.toUpperCase == 'N') {
-                    log.d('暂不交卷...');
-                    rl.close();
-                } else {
-                    log.e('输入错误, 暂不交卷...');
-                    rl.close();
-                }
-            });
+            let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
+            if (answer == 'Y') {
+                let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
+                log.d(`${delay}秒后自动交卷...`);
+                setTimeout(() => submit(result), delay * 1000);
+            } else if (answer == 'N') {
+                log.d('暂不交卷...');
+            } else {
+                log.e('输入错误, 暂不交卷...');
+            }
 
         } else {
             log.e(`${data.code} Error ${data.msg}`);
