@@ -2,6 +2,9 @@
 - 基于灯塔的Web版本
 - 环境: node
 
+## 运行示例
+![运行示例](./images/sample.jpg)
+
 ## How to start
 安装依赖库
 ```
