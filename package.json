@@ -1,0 +1,17 @@
+{
+    "name": "BeanconOnlineBot",
+    "version": "0.9.0",
+    "description": "灯塔在线答题机器人",
+    "main": "main.js",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "keywords": [],
+    "author": "Jessewo",
+    "license": "GPL",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "dependencies": {}
+}

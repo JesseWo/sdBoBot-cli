@@ -1,0 +1,793 @@
+{
+    "msg": "操作成功!",
+    "code": 200,
+    "success": true,
+    "data": {
+        "recordId": "7779d49raqjs7p1scid4m6qd0a",
+        "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+        "orderId": 181,
+        "totalSubject": 20,
+        "subjectInfoList": [
+            {
+                "id": "34v0bdh48mih3qbetvhn0f39k0",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "党的基层组织在党内监督中应当发挥（）作用。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "02fs55j3gehdoo6038p2e9mk8b",
+                        "optionTitle": "战斗堡垒",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "5sto2rpqq8jvjr11gjvcqg95pd",
+                        "optionTitle": "先锋模范",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "o0qe243qosjmio01klaeda52da",
+                        "optionTitle": "带头示范",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "ttklru4o24hfvqm66nc6gd5na9",
+                        "optionTitle": "创先争优",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "39sqn9ordci9sodk3r9md677fm",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "纪律检查机关必须把维护党的（）放在首位。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "tarhrm4n6qhg4oja4tdc7sfp0i",
+                        "optionTitle": "政治纪律和政治规矩",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "64ubqpo6cagevrqjqh9qhfqiln",
+                        "optionTitle": "党章权威",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "6irensl2k6gcrrstivqpv7pnp3",
+                        "optionTitle": "经济纪律和经济规矩",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "s72aoq2aaejprrcoo1uv651d8j",
+                        "optionTitle": "生活纪律和生活规矩",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "4030am2p7chesp2v2iuqm07e05",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "习近平指出，要推动乡村组织振兴，打造千千万万个坚强的农村基层党组织，培养千千万万名优秀的农村基层党组织书记，深化村民自治实践，发展农民合作经济组织，建立健全（）的现代乡村社会治理体制，确保乡村社会充满活力、安定有序。1、党委领导 2、政府负责 3、社会协同 4、公众参与 5、法治保障",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "7slg3r58tgighodooa0peq36ui",
+                        "optionTitle": "1、2、3、4",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "469giij8m4hkvoe1one45d6p0r",
+                        "optionTitle": "1、2、3、4、5",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "t9pist1c46h10ouh23u24evatp",
+                        "optionTitle": "2、3、4、5",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "ukapbbqqtighep2g8gfjshfgj9",
+                        "optionTitle": "2、3、4",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "tscbns7ncohltrpt3qp9ggcecj",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "党员领导干部还应当以普通党员身份参加所在党支部（党小组）组织生活会，过好（）组织生活。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "rggtqbse4uiu1oo1durk7gl1l8",
+                        "optionTitle": "支部",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "ova3ks9k8cjpepro2pndmbo6i1",
+                        "optionTitle": "双重",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "2o6vnc672ago7qt84vcimi3546",
+                        "optionTitle": "两种",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "q3vvjfsjt0ia0qg21gqfrgv2d1",
+                        "optionTitle": "多重",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "ubo6fn7s16hpio80uupqati1l8",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "完善权力运行制约和监督机制，形成（）的制度安排。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "77qaa8on0ihm9qi5d4t0vt8v8e",
+                        "optionTitle": "有权必有责",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "v3eqdtvut8hm6onvp27p34k5b4",
+                        "optionTitle": "适当自由裁量",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "rtnfcqi65khakqvcutc2a20954",
+                        "optionTitle": "用权必担责",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "tg4pi17algjfsoe7i26ihm7dpl",
+                        "optionTitle": "滥权必追责",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "ufb6g77jnkjscrftj02a23n7s6",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "党的工作机关领导班子应当（）。对重大事项的决策，一般应当经过调查研究、征求意见、专业评估、合法合规性审查和集体讨论决定等程序。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "o5tdblcb1gjl3on4pca32p2ea0",
+                        "optionTitle": "科学决策",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "rvv9pb6cf8hh2pvu5oikb7e0h2",
+                        "optionTitle": "协商决策",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "rfmvqr38ssg9cpoa2qaq3obq1b",
+                        "optionTitle": "民主决策",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "1bcl7bfpooj30rjo0v665gbd0h",
+                        "optionTitle": "依法决策",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "unftf17urgh55rb42msa88f46m",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "坚持和创新党内学习制度。以党委（党组）中心组学习等制度为主要抓手，各级党组织要定期开展（）。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "6tgf3qe14ij5boti5n3gnd33qa",
+                        "optionTitle": "集体学习",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "u557ka9vqog4mqpgvlc9f098bv",
+                        "optionTitle": "专题学习",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "o50605m7hsiourk8fcs2buafl5",
+                        "optionTitle": "业务学习",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "2dnaokgt98gnmr40quctch7fdg",
+                        "optionTitle": "理论学习",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "uud83pus9mgd3q1k4vuv58muuk",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "全党必须毫不动摇坚持以（）为中心，聚精会神抓好发展这个党执政兴国的第一要务。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "5feflq2ttai3dr045e0ao619ot",
+                        "optionTitle": "经济建设",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "vetrsin4v8j5vrsudr8ef4tr00",
+                        "optionTitle": "社会建设",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "4tgfksv8cghnhqttos32fq77jj",
+                        "optionTitle": "生态文明建设",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "of3t1vbm0ggfprhgdq8mu6sp8j",
+                        "optionTitle": "党的建设",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "uvaraolddijudpg24qforlm1mm",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "加强干部教育培训机构建设，构建分工明确、优势互补、布局合理、竞争有序的干部教育培训机构体系。充分发挥（）在干部教育培训中的主渠道、主阵地作用。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "1brtib1tdmjnqoj45hog01kvm0",
+                        "optionTitle": "党校",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "795hdld7g4gu0o7lu7kn92coth",
+                        "optionTitle": "高等学校",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "p6kereb5o2jogopot9748au82b",
+                        "optionTitle": "行政学院",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "1pk3s8bl5gjstovesil4k2lrsh",
+                        "optionTitle": "干部学院",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "v9ghdehvg0ghlp7prv7rhq86rs",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "批评和自我批评是我们党强身治病、保持肌体健康的锐利武器，也是加强和规范（）的重要手段。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "v9g102pkakje9pomafccv5gnk3",
+                        "optionTitle": "党内政治纪律",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "2lam5l4014h8qpdb4cnd7l9f24",
+                        "optionTitle": "党员个人作风",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "179lbme1aohvor28a1bc7vltqd",
+                        "optionTitle": "党内政治生活",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "t83mvkeue8hq1qktfhqalk2ofr",
+                        "optionTitle": "党员组织生活",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "3uu3t2p16sg5po06rk48ss91ka",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "问责决定作出后，应当及时向被问责党组织或者党的领导干部及其所在党组织宣布并督促执行。涉及组织调整或者组织处理的，应当在（）内办理完毕相应手续。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "s7abke0v00hcvquu202te1a86t",
+                        "optionTitle": "三个月",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "3p4ot8bn74i87pu54ssfcev31n",
+                        "optionTitle": "一个月",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "omv14no4aij61qmvurc113885q",
+                        "optionTitle": "五个月",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "t3igr2v4gag7eotb0hjak10u4j",
+                        "optionTitle": "六个月",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "42qhqc3adkisdqoiu2utnu2491",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "党的地方委员会每届任期（）年。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "q9chrs2u50gteqr8f4jvrl7vc7",
+                        "optionTitle": "1",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "0bvistaqi6hguqnvgeols23ata",
+                        "optionTitle": "3",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "pd7k6sq3hui74qo0jjrd1q8i7g",
+                        "optionTitle": "3至5",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "46jki3om2qiklpl1r7cndro61n",
+                        "optionTitle": "5",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "4kuslc58qag3bqvds3chkhnuqv",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "党务公开应当遵循的原则包括（）。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "130stba98oj36qs65taumni3l3",
+                        "optionTitle": "坚持正确方向",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "v9vtup3etchpiq1k27f95e60fn",
+                        "optionTitle": "坚持发扬民主",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "vvigldmq5ehajptju0a9j7nt1c",
+                        "optionTitle": "坚持积极稳妥",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "p9bdtpl9vcg1hqnsr8vq5h7acu",
+                        "optionTitle": "坚持依规依法",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "7b2kfsk2aajqkrvpfagnk33ctu",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "干部教育培训工作必须紧紧围绕全面建成小康社会、全面深化改革、全面依法治国、全面从严治党的战略布局，以（）为重点，把“三严三实”要求贯穿干部教育培训全过程，培养造就信念坚定、为民服务、勤政务实、敢于担当、清正廉洁的好干部。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "vadlovdlsciabpsb939nrdjteb",
+                        "optionTitle": "坚定理想信念",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "p37kcgkjlogbkpj4pi6g6i5t5k",
+                        "optionTitle": "增强执政意识",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "vbmrj5najmgicr9f4asge6q39c",
+                        "optionTitle": "更新知识结构",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "4gg9ioqkj0g0kq812uhfughphn",
+                        "optionTitle": "提高执政能力",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "pbh7nbmu6mgslp17p4q10or8o4",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "今年全国“两会”期间，习近平在参加内蒙古代表团审议时强调，要深入践行（）理念，深化民族团结进步教育，铸牢中华民族共同体意识，促进各民族像石榴籽一样紧紧抱在一起，共同守卫祖国边疆、共同创造美好生活。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "ue83kdjjgshttrf4ghjl2gcanj",
+                        "optionTitle": "团结互助",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "ro2930rv94jfmrvg7j4uu5a1cj",
+                        "optionTitle": "和谐共生",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "p0hfm4n3feihopn8isdanmhdqo",
+                        "optionTitle": "守望相助",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "pqcn6qnr4sjdvpecv69f73q0kq",
+                        "optionTitle": "安定团结",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "s1bobpjcpghnmqsvms966iai86",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "建立健全党的领导干部插手干预重大事项（）制度，发现利用职务便利违规干预干部选拔任用、工程建设、执纪执法、司法活动等问题，应当及时向上级党组织报告。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "o0bqa6nupsgqrqekujoi7a38hs",
+                        "optionTitle": "报告",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "th558q327qg2pq8d28vktcfukt",
+                        "optionTitle": "巡查",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "rov8t17iiehmcp6t341okg89qi",
+                        "optionTitle": "记录",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "3jam30hc0qg4ep0jnnp72dvp2c",
+                        "optionTitle": "侦查",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "s4mhdjfj0siaaor93m9ii3bups",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "党支部每（）对入党积极分子进行一次考察。",
+                "subjectType": "0",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "3dp7881vkqjj7r3urq2lajj8hc",
+                        "optionTitle": "一个月",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "toosoe3akojrtqmtjr2hdak468",
+                        "optionTitle": "半年",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "rr2g83dddcg63peq0hlc7v9g50",
+                        "optionTitle": "三个月",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "1721vlj01ghnfpf8evf0o6p137",
+                        "optionTitle": "一年",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "tu281fd32ciulpmn6crb1ob186",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "《党政机关厉行节约反对浪费条例》中所称的浪费，是指（）。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "3n87vk31iugsqrhlk3gq9l2qho",
+                        "optionTitle": "党政机关及其工作人员违反规定进行不必要的公务活动，给国家和社会造成损失的行为",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "v8atmq4q7gi3aoarab9pnbdo9m",
+                        "optionTitle": "党政机关及其工作人员在履行公务中超出规定范围、标准和要求，给国家和社会造成损失的行为",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "qglvkcnhjqitgrrhret60kcdoh",
+                        "optionTitle": "党政机关及其工作人员在私人活动中造成的浪费",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "6839igeriij88r7vso5bdr0b9u",
+                        "optionTitle": "党政机关及其工作人员不当使用公共资金、资产和资源，给国家和社会造成损失的行为",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "uesqq9mcqagcbpivkvsv51ak82",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "在长期实践中，我们党坚持把开展严肃认真的党内政治生活作为党的建设重要任务来抓，形成了以实事求是、理论联系实际、密切联系群众、（）等为主要内容的党内政治生活基本规范。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "rlmr7pusmmhn8oa1itgujlppjo",
+                        "optionTitle": "批评和自我批评",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "pcig5bv836g3orisb29j992drm",
+                        "optionTitle": "集中统一领导",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "0jgha1dhe0i1tp1893pecp1anc",
+                        "optionTitle": "民主集中制",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "7e5liiql34j73oe34bleb9hic2",
+                        "optionTitle": "严明党的纪律",
+                        "optionType": "D"
+                    }
+                ]
+            },
+            {
+                "id": "v940v39m0mi9hrasr0tuvss9p3",
+                "orderId": 181,
+                "roundId": null,
+                "roundOnlyId": "IzqIhoTDGoP9HR0Q4khjP1",
+                "chapterId": null,
+                "subjectTitle": "入党积极分子的培养联系人的主要任务是（）。",
+                "subjectType": "1",
+                "status": null,
+                "answer": null,
+                "totalRight": null,
+                "totalWrong": null,
+                "difficultyLevel": null,
+                "createTime": null,
+                "examFlag": null,
+                "subjectId": null,
+                "optionInfoList": [
+                    {
+                        "id": "1e6hpkdhm6jq0q91n1hdh70k9g",
+                        "optionTitle": "向入党积极分子介绍党的基本知识",
+                        "optionType": "A"
+                    },
+                    {
+                        "id": "v2ghpbs8nsgjvqf00if7op2n75",
+                        "optionTitle": "了解入党积极分子的政治觉悟、道德品质、现实表现和家庭情况等，做好培养教育工作，引导入党积极分子端正入党动机",
+                        "optionType": "B"
+                    },
+                    {
+                        "id": "5h9tpe7gb8hq8rbn9i528cj57f",
+                        "optionTitle": "及时向党支部汇报入党积极分子情况",
+                        "optionType": "C"
+                    },
+                    {
+                        "id": "58pbkcglecidrrc1gh46qajuch",
+                        "optionTitle": "向党支部提出能否将入党积极分子列为发展对象的意见",
+                        "optionType": "D"
+                    }
+                ]
+            }
+        ]
+    }
+}

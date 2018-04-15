@@ -1,0 +1,9 @@
+党员
+{
+    "usetype": "0",
+    "hassh": "qwertyuiopqwertyuio",
+    "orgId": "0"
+}
+
+群众
+{"usetype":"1","hassh":"手机号"}
