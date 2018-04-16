@@ -31,7 +31,9 @@ function query(questionBank, subjectInfoList) {
         for (let j = 0; j < questionBank.length; j++) {
             const answerSubjectInfo = questionBank[j];
             const answerSubjectTitle = answerSubjectInfo.subjectTitle;
-            if (subjectTitle == answerSubjectTitle
+            //去除题目中的特殊字符，然后进行匹配
+            const questionRegex = /[ ,.，。、；：！？《》“”……—\(\)（）\\n]/g;
+            if (subjectTitle.replace(questionRegex, '') == answerSubjectTitle.replace(questionRegex, '')
                 && subjectType == answerSubjectInfo.subjectType) {
                 let correctAnswerOptsArr = answerSubjectInfo.optionInfoList.filter((element) => element.isRight == '1');
                 correctOptionArr = optionInfoList.filter((element) => {
@@ -149,17 +151,11 @@ function query(questionBank, subjectInfoList) {
             // var favFood = readlineSync.question('What is your favorite food? ', {
             //     hideEchoBack: true // The typed text on screen is hidden by `*` (default).
             // });
-            while ((subjectType == '0' && !inputStr.match('[A-G]{1}'))
-                || (subjectType == '1' && !inputStr.match(`[A-G]{1,${optionInfoList.length}}$`))) {
+            while ((subjectType == '0' && !inputStr.match(/^[A-D]{1}$/g))
+                || (subjectType == '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
                 inputStr = readlineSync.question('输入格式错误, 请重新输入:').trim().toUpperCase();
             }
-            let correctedOpts = '';
-            for (let i = 0; i < inputStr.length; i++) {
-                correctedOpts += inputStr.charAt(i);
-                if (i != inputStr.length - 1) {
-                    correctedOpts += ',';
-                }
-            }
+            let correctedOpts = inputStr.match(/./g).join(',');
             log.w(`您输入的是: ${correctedOpts}\n`);
             //将输入的答案添加到错题集里
             item.answer = correctedOpts;
