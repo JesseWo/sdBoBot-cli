@@ -211,7 +211,7 @@ function getSubjectInfoList(questionBank) {
             }
 
 
-            log.d(`开始答题, 共计${data.data.totalSubject}题.`);
+            log.d(`开始答题, 共计${data.data.totalSubject}题.\n`);
             const subjectInfoList = data.data.subjectInfoList;
             //查询答案
             let answerList = queryEngine.query(questionBank, subjectInfoList);
@@ -229,8 +229,18 @@ function getSubjectInfoList(questionBank) {
             let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
             if (answer == 'Y') {
                 let delay = readlineSync.question('请输入交卷延时(建议大于10秒):').trim().toUpperCase();
-                log.d(`${delay}秒后自动交卷...`);
-                setTimeout(() => submit(result), delay * 1000);
+                while(!delay.match(/^[\d]+$/g)){
+                    delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
+                }
+                delay = Math.floor(delay);
+                //倒计时
+                let intervalId = setInterval(() => {
+                    log.d(`${delay--}秒后交卷...`);
+                    if (delay <= 0) {
+                        clearInterval(intervalId);
+                        submit(result)
+                    }
+                }, 1000);
             } else if (answer == 'N') {
                 log.d('暂不交卷...');
             } else {
