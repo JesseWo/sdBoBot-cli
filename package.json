@@ -9,10 +9,10 @@
     },
     "keywords": [],
     "author": "Jessewo",
-    "license": "GPL",
+    "license": "GPL-3.0",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/JesseWo/sdBeaconOnline.git"
     },
     "dependencies": {
         "colors": "latest",

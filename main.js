@@ -1,5 +1,7 @@
 'use strict';
-
+/**
+ * 控制train_data输出
+ */
 const debug = false;
 
 const httpRequst = require('./httpRequst');
