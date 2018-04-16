@@ -18,12 +18,19 @@ var readlineSync = require('readline-sync');
 const HOST = 'xxjs.dtdjzx.gov.cn';
 
 //构建登录信息
-const loginInfo = JSON.parse(fs.readFileSync('login.json', 'utf-8'));
-const headers = {
-    'Content-Type': 'application/json',
-    'user_hash': loginInfo.hassh,
-    'system-type': 'web'
-};
+let headers;
+function login() {
+    const loginInfo = JSON.parse(fs.readFileSync('login.json', 'utf-8'));
+    if (loginInfo && loginInfo.hassh) {
+        headers = {
+            'Content-Type': 'application/json',
+            'user_hash': loginInfo.hassh,
+            'system-type': 'web'
+        };
+        return true;
+    }
+    return false;
+}
 
 /**
  * mock 点击数据
@@ -109,6 +116,23 @@ function submit(result) {
             log.e(`交卷失败! ${data.code} Error ${data.msg}`);
         }
     });
+}
+
+function updateChapterId(next) {
+    const options = {
+        hostname: 'oambnb4ig.bkt.clouddn.com',
+        port: 80,
+        path: '/qb_chapterid.json',
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    httpRequst(options, '', (data) => {
+        let chapterId = data.chapterId;
+        log.d(`更新chapterId: ${chapterId}`);
+        next(chapterId, getSubjectInfoList);
+    })
 }
 
 /**
@@ -229,6 +253,12 @@ function isQuestionBankValid(qbData) {
 }
 
 function main() {
+    //登录信息校验
+    if (!login()) {
+        log.e('未检测到有效的登录信息, 请修改[login.json]文件后重试!');
+        return;
+    }
+    //题库有效性校验
     if (fs.existsSync('./db/questionBank.json')) {
         log.d('从缓存读取题库...');
         let qbData = JSON.parse(fs.readFileSync('db/questionBank.json', 'utf-8'));
@@ -238,7 +268,7 @@ function main() {
             return;
         }
     }
-    getQuestionBank('qbqkfcn2fuihtqtnvo5t8e3mri', getSubjectInfoList);
+    updateChapterId(getQuestionBank);
 }
 
 main();
