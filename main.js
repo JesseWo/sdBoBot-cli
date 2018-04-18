@@ -228,8 +228,8 @@ function getSubjectInfoList(questionBank) {
 
             let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
             if (answer == 'Y') {
-                let delay = readlineSync.question('请输入交卷延时(建议大于10秒):').trim().toUpperCase();
-                while(!delay.match(/^[\d]+$/g)){
+                let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
+                while(!delay.match(/^[\d]+$/g) || delay < 15){
                     delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
                 }
                 delay = Math.floor(delay);
