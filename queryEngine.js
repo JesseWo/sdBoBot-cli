@@ -19,9 +19,7 @@ function query(questionBank, subjectInfoList) {
     //遍历试题
     for (let i = 0; i < subjectInfoList.length; i++) {
         const subjectInfo = subjectInfoList[i];
-        const subjectTitle = subjectInfo.subjectTitle;
-        const subjectType = subjectInfo.subjectType;
-        const optionInfoList = subjectInfo.optionInfoList;
+        const { subjectTitle, subjectType, optionInfoList } = subjectInfo;
 
         log.i(`${i + 1}.[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
 

@@ -20,11 +20,11 @@ const HOST = 'xxjs.dtdjzx.gov.cn';
 //构建登录信息
 let headers;
 function login() {
-    const loginInfo = JSON.parse(fs.readFileSync('login.json', 'utf-8'));
-    if (loginInfo && loginInfo.hassh) {
+    const { hassh } = JSON.parse(fs.readFileSync('login.json', 'utf-8'));
+    if (hassh) {
         headers = {
             'Content-Type': 'application/json',
-            'user_hash': loginInfo.hassh,
+            'user_hash': hassh,
             'system-type': 'web'
         };
         return true;
@@ -60,10 +60,11 @@ function mockHumanBehaviors(totalSubject) {
     maxArr = maxArr.sort(function (x, y) { return x - y });
     let repeatX = maxArr.length > 0 ? maxArr[maxArr.length - 1] : 0 //重复x 坐标的次数
 
-    let humanBehavior = {};
-    humanBehavior.sameNum = repeatX;
-    humanBehavior.clickX = clientXArr.join(',');
-    humanBehavior.clickY = clientXArrY.join(',');
+    let humanBehavior = {
+        sameNum: repeatX,
+        clickX: clientXArr.join(','),
+        clickY: clientXArrY.join(',')
+    };
     return humanBehavior;
 }
 
@@ -210,26 +211,28 @@ function getSubjectInfoList(questionBank) {
                 });
             }
 
+            const { recordId, roundOnlyId, orderId, totalSubject, subjectInfoList } = data.data;
+            log.d(`开始答题, 共计${totalSubject}题.\n`);
 
-            log.d(`开始答题, 共计${data.data.totalSubject}题.\n`);
-            const subjectInfoList = data.data.subjectInfoList;
             //查询答案
             let answerList = queryEngine.query(questionBank, subjectInfoList);
-
-            let result = {};
-            result.recordId = data.data.recordId;
-            result.roundOnlyId = data.data.roundOnlyId;
-            result.orderId = data.data.orderId;
-            result.subjectInfoList = answerList;
-            let humanBehavior = mockHumanBehaviors(data.data.totalSubject);
-            result.sameNum = humanBehavior.sameNum;
-            result.clickX = humanBehavior.clickX;
-            result.clickY = humanBehavior.clickY;
+            //模拟点击数据
+            let { sameNum, clickX, clickY } = mockHumanBehaviors(totalSubject);
+            //构建交卷body
+            let result = {
+                recordId: recordId,
+                roundOnlyId: roundOnlyId,
+                orderId: orderId,
+                subjectInfoList: answerList,
+                sameNum: sameNum,
+                clickX: clickX,
+                clickY: clickY
+            };
 
             let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
             if (answer == 'Y') {
                 let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
-                while(!delay.match(/^[\d]+$/g) || delay < 15){
+                while (!delay.match(/^[\d]+$/g) || delay < 15) {
                     delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
                 }
                 delay = Math.floor(delay);
