@@ -4,33 +4,18 @@
  */
 const debug = false;
 
-const httpRequst = require('./httpRequst');
+const { httpGet, httpPost, addHeader } = require('./httpRequst');
 const queryEngine = require('./queryEngine');
-const querystring = require('querystring');
 const fs = require('fs');
 const log = require('./utils/logUtils');
 const dateFormat = require('./utils/dateUtils');
 const random = require('./utils/randomUtils');
+//登录模块
+const login = require('./login');
 
 //控制台键盘输入读取
-var readlineSync = require('readline-sync');
+const readlineSync = require('readline-sync');
 
-const HOST = 'xxjs.dtdjzx.gov.cn';
-
-//构建登录信息
-let headers;
-function login() {
-    const { hassh } = JSON.parse(fs.readFileSync('login.json', 'utf-8'));
-    if (hassh) {
-        headers = {
-            'Content-Type': 'application/json',
-            'user_hash': hassh,
-            'system-type': 'web'
-        };
-        return true;
-    }
-    return false;
-}
 
 /**
  * mock 点击数据
@@ -81,14 +66,10 @@ function mockHumanBehaviors(totalSubject) {
 function submit(result) {
     let jString = JSON.stringify(result);
     log.d(jString);
-    const options = {
-        hostname: HOST,
-        port: 80,
+    httpPost({
         path: '/quiz-api/chapter_info/countScore',
-        method: 'POST',
-        headers: headers
-    };
-    httpRequst(options, jString, (data) => {
+        body: jString
+    }, (statusCode, headers, data) => {
         if (data.code == 200 && data.success) {
             log.d(`交卷成功! ${JSON.stringify(data)}`);
 
@@ -120,20 +101,17 @@ function submit(result) {
 }
 
 function updateChapterId(next) {
-    const options = {
-        hostname: 'oambnb4ig.bkt.clouddn.com',
-        port: 80,
+    httpGet({
+        protoHost: 'http://oambnb4ig.bkt.clouddn.com',
         path: '/qb_chapterid.json',
-        method: 'GET',
         headers: {
             'Content-Type': 'application/json'
-        }
-    };
-    httpRequst(options, '', (data) => {
+        },
+    }, (statusCode, headers, data) => {
         let chapterId = data.chapterId;
         log.d(`更新chapterId: ${chapterId}`);
         next(chapterId, getSubjectInfoList);
-    })
+    });
 }
 
 /**
@@ -144,19 +122,12 @@ function updateChapterId(next) {
  * 四月题库: qbqkfcn2fuihtqtnvo5t8e3mri
  */
 function getQuestionBank(chapterId, next) {
-    const queryParams = querystring.stringify({
-        'chapterId': chapterId
-    });
-    const options = {
-        hostname: HOST,
-        port: 80,
-        path: `/quiz-api/subject_info/list?${queryParams}`,
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
+    httpGet({
+        path: '/quiz-api/subject_info/list',
+        query: {
+            'chapterId': chapterId
         }
-    };
-    httpRequst(options, '', (data) => {
+    }, (statusCode, headers, data) => {
         if (data.code == 200 && data.success) {
             if (!isQuestionBankValid(data)) {
                 log.e('题库已过期!');
@@ -179,7 +150,7 @@ function getQuestionBank(chapterId, next) {
         } else {
             log.e(`${data.code} Error ${data.msg}`);
         }
-    })
+    });
 }
 
 /**
@@ -190,14 +161,9 @@ function getQuestionBank(chapterId, next) {
  * system-type:web
  */
 function getSubjectInfoList(questionBank) {
-    const options = {
-        hostname: HOST,
-        port: 80,
+    httpPost({
         path: '/quiz-api/game_info/getGameSubject',
-        method: 'POST',
-        headers: headers
-    };
-    httpRequst(options, '', (data) => {
+    }, (statusCode, headers, data) => {
         if (data.code == 200 && data.success) {
             //缓存试题
             if (debug) {
@@ -254,7 +220,6 @@ function getSubjectInfoList(questionBank) {
             log.e(`${data.code} Error ${data.msg}`);
         }
     });
-
 }
 
 function isQuestionBankValid(qbData) {
@@ -266,22 +231,22 @@ function isQuestionBankValid(qbData) {
 }
 
 function main() {
-    //登录信息校验
-    if (!login()) {
-        log.e('未检测到有效的登录信息, 请修改[login.json]文件后重试!');
-        return;
-    }
-    //题库有效性校验
-    if (fs.existsSync('./db/questionBank.json')) {
-        log.d('从缓存读取题库...');
-        let qbData = JSON.parse(fs.readFileSync('db/questionBank.json', 'utf-8'));
-        if (isQuestionBankValid(qbData)) {
-            log.d('检测题库有效.');
-            getSubjectInfoList(qbData.data.subjectInfoList);
-            return;
+    login((hassh) => {
+        //更新请求头
+        addHeader('user_hash', hassh);
+        //题库有效性校验
+        if (fs.existsSync('./db/questionBank.json')) {
+            log.d('从缓存读取题库...');
+            let qbData = JSON.parse(fs.readFileSync('db/questionBank.json', 'utf-8'));
+            if (isQuestionBankValid(qbData)) {
+                log.d('检测题库有效.');
+                getSubjectInfoList(qbData.data.subjectInfoList);
+                return;
+            }
         }
-    }
-    updateChapterId(getQuestionBank);
+        updateChapterId(getQuestionBank);
+    });
+
 }
 
 main();

@@ -7,3 +7,21 @@
 
 群众
 {"usetype":"1","hassh":"手机号"}
+
+打开登录页面(set-Cookie)
+https://sso.dtdjzx.gov.cn/sso/login
+
+登录失败(用户名或密码错误)
+https://sso.dtdjzx.gov.cn/sso/login?error
+
+获取(刷新)验证码图片
+GET https://sso.dtdjzx.gov.cn/sso/validateCodeServlet?t=1.739787476892778
+t = Math.random() * 10
+
+获取hassh
+GET https://sso.dtdjzx.gov.cn/sso/oauth/authorize?client_id=party-build-knowledge&redirect_uri=http://xxjs.dtdjzx.gov.cn/quiz-api/user/sso_callback%3fc_type=code&response_type=code
+GET http://xxjs.dtdjzx.gov.cn/quiz-api/user/sso_callback?c_type=code&code=RTB1iT
+
+登出
+GET http://www.dtdjzx.gov.cn/member/logout
+GET https://sso.dtdjzx.gov.cn/sso/logout?redir=https://www.dtdjzx.gov.cn/
