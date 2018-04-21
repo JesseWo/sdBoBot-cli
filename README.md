@@ -4,7 +4,7 @@
 [给普通用户的使用说明](https://www.jianshu.com/p/2f32b76b9bf4)
 
 ## 声明
-此project仅为个人学习node.js所用,若用于他用,后果请自负...
+此project仅为个人学习node.js所用,若用于他用,后果请自负...
 
 - 基于dengta的Web版本
 - 环境: node
@@ -25,15 +25,6 @@ npm install
 npm test
 ```
 
-## 登录
-修改配置文件`login.json` 
-修改 hassh 字段
-如果是qunzhong, 则为个人的手机号;
-如果是dangyuan, 则为登录后的token;
-
-token查看方式, 用chrome登录灯塔在线, 然后打开chrome的调试页面
-
-![查看方式](./images/chrome_token.jpg)
 
 ## 启动
 ```
@@ -41,8 +32,8 @@ npm start
 ```
 
 ## Project目录说明
-* ./analytics 目录下有各个接口返回的json数据和官方js文件;
-* ./train_data 目录下缓存每次拉取到的试题,方便后续测试;
+* ./analytics 目录下有各个接口返回的json数据和官方js文件;
+* ./train_data 目录下缓存每次拉取到的试题,方便后续测试;
 
 
 ## TODO 
@@ -52,7 +43,7 @@ npm start
 ## 关于
 ---
 
-冒天下之大不韪写了这么个东西, 难道不该请俺喝杯咖啡嘛 ^_^
+冒天下之大不韪写了这么个东西, 难道不该请俺喝杯咖啡嘛 ^_^
 
 | ![微信](./images/wxpay_me.png) | ![支付宝](./images/alipay_me.jpeg) |
 | :-:   | :-: |
