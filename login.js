@@ -10,20 +10,20 @@ const fs = require('fs');
 const path = require('path');
 const querystring = require('querystring');
 const os = require('os');
-var open = require("open");
+const open = require("open");
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const PROTO_HOST = 'https://sso.dtdjzx.gov.cn';
 const HOST = 'sso.dtdjzx.gov.cn';
 
-const loginCachFile = './db/login.json';
+const loginCacheFile = './db/login.json';
 
 let cookie_sid;
 let cookie_xsession;
 let nextAction;
 
 function checkLogin(next) {
-    let jstring = fs.readFileSync(loginCachFile, 'utf-8');
+    let jstring = fs.readFileSync(loginCacheFile, 'utf-8');
     if (jstring) {
         const { hassh } = JSON.parse(jstring);
         if (hassh) {
@@ -243,7 +243,7 @@ function getObjsStep2(urlStr) {
                     hassh: h,
                     orgId: "0"
                 });
-                fs.writeFile(loginCachFile, userInfo, (e) => {
+                fs.writeFile(loginCacheFile, userInfo, (e) => {
                     if (e) log.e(e);
                 });
 
