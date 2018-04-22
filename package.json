@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "colors": "latest",
-        "readline-sync": "latest"
+        "readline-sync": "latest",
+        "open": "latest"
     }
 }

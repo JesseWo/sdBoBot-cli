@@ -9,6 +9,8 @@ const cookieParser = require('./utils/cookieParser');
 const fs = require('fs');
 const path = require('path');
 const querystring = require('querystring');
+const os = require('os');
+var open = require("open");
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const PROTO_HOST = 'https://sso.dtdjzx.gov.cn';
@@ -85,8 +87,6 @@ function refreshValidateCode() {
         fs.writeFileSync(vcodeFileName, rawData, 'binary');
         let vcodePath = path.join(__dirname, vcodeFileName);
         log.d(`缓存验证码图片: ${vcodePath}`);
-        //自动打开图片或者OCR自动识别
-
         //提示用户输入
         let username;
         do {
@@ -96,9 +96,11 @@ function refreshValidateCode() {
         do {
             password = readlineSync.question('请输入密码:').trim();
         } while (!password);
+        //自动打开图片或者OCR自动识别
+        openImage(vcodePath);
         let validateCode;
         do {
-            validateCode = readlineSync.question(`请输入验证码:(验证码图片缓存路径 ${vcodePath})`).trim();
+            validateCode = readlineSync.question('请输入验证码:').trim();
         } while (!validateCode);
         login({
             username: username,
@@ -106,6 +108,31 @@ function refreshValidateCode() {
             validateCode: validateCode
         });
     });
+}
+
+function openImage(imagePath) {
+    open(imagePath);
+    // let cmd;
+    // switch (os.type()) {
+    //     case 'Linux':
+
+    //         break;
+    //     case 'Darwin':
+    //         // cmd = `open -a /Applications/Preview.app ${imagePath}`
+    //         cmd = 'start http://www.baidu.com';
+    //         break
+    //     case 'Windows_NT':
+    //         cmd = 'start http://www.baidu.com';
+    //         break;
+    // }
+    // exec(cmd, (error, stdout, stderr) => {
+    //     if (error) {
+    //         log.e(`exec error: ${error}`);
+    //         return;
+    //     }
+    //     log.d(`stdout: ${stdout}`);
+    //     log.d(`stderr: ${stderr}`);
+    // });
 }
 
 /**
