@@ -105,7 +105,7 @@ function query(questionBank, subjectInfoList) {
     //将自动查询失败的问题 显示给用户,并手动输入答案
     if (failureMap.size > 0) {
         //汇总记录查询失败的问题
-        const failureCollector = JSON.parse(fs.readFileSync('./train_data/failureList.json', 'utf-8'));
+        const failureCollector = require('./train_data/failureList.json');
         let collectorList = failureCollector.data.subjectInfoList;
         let newList = [];
         failureMap.forEach((value, key, map) => {

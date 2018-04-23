@@ -23,14 +23,16 @@ let cookie_xsession;
 let nextAction;
 
 function checkLogin(next) {
-    let jstring = fs.readFileSync(loginCacheFile, 'utf-8');
-    if (jstring) {
-        const { hassh } = JSON.parse(jstring);
-        if (hassh) {
-            log.d('检测到缓存的登录信息!');
-            next(hassh);
-            return;
-        }
+    let hassh;
+    try {
+        hassh = require(loginCacheFile).hassh;
+    } catch (error) {
+        log.e(error);
+    }
+    if (hassh) {
+        log.d('检测到缓存的登录信息!');
+        next(hassh);
+        return;
     }
     log.d('未检测到缓存的登录信息');
     nextAction = next;

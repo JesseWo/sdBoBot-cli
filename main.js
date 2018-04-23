@@ -235,9 +235,14 @@ function main() {
         //更新请求头
         addHeader('user_hash', hassh);
         //题库有效性校验
-        if (fs.existsSync('./db/questionBank.json')) {
+        let qbData;
+        try {
+            qbData = require('./db/questionBank.json');
+        } catch (error) {
+            log.e(error);
+        }
+        if (qbData) {
             log.d('从缓存读取题库...');
-            let qbData = JSON.parse(fs.readFileSync('db/questionBank.json', 'utf-8'));
             if (isQuestionBankValid(qbData)) {
                 log.d('检测题库有效.');
                 getSubjectInfoList(qbData.data.subjectInfoList);
