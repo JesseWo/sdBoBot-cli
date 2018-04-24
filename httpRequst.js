@@ -5,7 +5,7 @@ const https = require('https');
 const querystring = require('querystring');
 const urlParser = require("url");
 
-let PROTO_HOST = 'http://xxjs.dtdjzx.gov.cn';
+let BASE_URL = 'http://xxjs.dtdjzx.gov.cn';
 
 let commonHeaders = {
     'Content-Type': 'application/json',
@@ -59,8 +59,8 @@ function httpRequest(protocol, options, data, callback) {
     req.end();
 }
 
-function get({ protoHost = PROTO_HOST, headers = commonHeaders, path, query }, callback) {
-    let { protocol, hostname } = urlParser.parse(protoHost);
+function get({ baseUrl = BASE_URL, headers = commonHeaders, path, query }, callback) {
+    let { protocol, hostname } = urlParser.parse(baseUrl);
     const options = {
         hostname: hostname,
         path: `${path}?${querystring.stringify(query)}`,
@@ -70,8 +70,8 @@ function get({ protoHost = PROTO_HOST, headers = commonHeaders, path, query }, c
     httpRequest(protocol, options, '', callback);
 }
 
-function post({ protoHost = PROTO_HOST, headers = commonHeaders, path, body = '' }, callback) {
-    let { protocol, hostname } = urlParser.parse(protoHost);
+function post({ baseUrl = BASE_URL, headers = commonHeaders, path, body = '' }, callback) {
+    let { protocol, hostname } = urlParser.parse(baseUrl);
     const options = {
         hostname: hostname,
         path: path,

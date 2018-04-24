@@ -102,7 +102,7 @@ function submit(result) {
 
 function updateChapterId(next) {
     httpGet({
-        protoHost: 'http://oambnb4ig.bkt.clouddn.com',
+        baseUrl: 'http://oambnb4ig.bkt.clouddn.com',
         path: '/qb_chapterid.json',
         headers: {
             'Content-Type': 'application/json'
@@ -231,9 +231,7 @@ function isQuestionBankValid(qbData) {
 }
 
 function main() {
-    login((hassh) => {
-        //更新请求头
-        addHeader('user_hash', hassh);
+    login(() => {
         //题库有效性校验
         let qbData;
         try {
@@ -254,4 +252,6 @@ function main() {
 
 }
 
-main();
+if (require.main === module) {
+    main();
+}

@@ -13,25 +13,30 @@ const os = require('os');
 const open = require("open");
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
-const PROTO_HOST = 'https://sso.dtdjzx.gov.cn';
+const BASE_URL = 'https://sso.dtdjzx.gov.cn';
 const HOST = 'sso.dtdjzx.gov.cn';
 
-const loginCacheFile = './db/login.json';
+const loginCacheFile = './db/objs.json';
+const cookieFile = './db/cookie.json';
 
 let cookie_sid;
 let cookie_xsession;
 let nextAction;
 
 function checkLogin(next) {
-    let hassh;
+    let hassh, xSession;
     try {
         hassh = require(loginCacheFile).hassh;
+        xSession = require(cookieFile)['X-SESSION'];
     } catch (error) {
         log.e(error);
     }
-    if (hassh) {
+    if (hassh && xSession) {
         log.d('检测到缓存的登录信息!');
-        next(hassh);
+        //更新请求头
+        addHeader('user_hash', hassh);
+        addHeader('Cookie', xSession);
+        next();
         return;
     }
     log.d('未检测到缓存的登录信息');
@@ -39,12 +44,16 @@ function checkLogin(next) {
     visitLoginPage();
 }
 
+checkLogin.then = (next) => {
+    nextAction = next;
+}
+
 /**
  * 打开登录页面(获取SSO-SID)
  */
 function visitLoginPage() {
     httpGet({
-        protoHost: PROTO_HOST,
+        baseUrl: BASE_URL,
         path: '/sso/login',
         headers: {
             'Upgrade-Insecure-Requests': 1,
@@ -67,7 +76,7 @@ function visitLoginPage() {
  */
 function refreshValidateCode() {
     httpGet({
-        protoHost: PROTO_HOST,
+        baseUrl: BASE_URL,
         path: '/sso/validateCodeServlet',
         query: { t: Math.random() * 10 },
         headers: {
@@ -143,12 +152,12 @@ function openImage(imagePath) {
  */
 function login(loginInfo) {
     httpPost({
-        protoHost: PROTO_HOST,
+        baseUrl: BASE_URL,
         path: '/sso/login',
         headers: {
             'Upgrade-Insecure-Requests': 1,
             'User-Agent': UA,
-            'Origin': PROTO_HOST,
+            'Origin': BASE_URL,
             'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
             'Cookie': cookie_sid,
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -162,11 +171,11 @@ function login(loginInfo) {
                 //登录失败
                 log.e('用户名或密码错误!请重新输入..');
                 //刷新验证码, 重新登录
-                refreshValidateCode(cookie);
+                refreshValidateCode();
             } else {
                 //登录成功
                 httpGet({
-                    protoHost: 'https://www.dtdjzx.gov.cn',
+                    baseUrl: 'https://www.dtdjzx.gov.cn',
                     path: '/member/',
                     headers: {
                         'Host': 'www.dtdjzx.gov.cn',
@@ -180,6 +189,16 @@ function login(loginInfo) {
                     let { 'X-SESSION': xSession } = cookieParser.parse(cookieArr[0]);
                     cookie_xsession = `X-SESSION=${xSession}`;
                     getObjsStep1();
+                    //更新请求头
+                    addHeader('Cookie', cookie_xsession);
+                    //缓存cookie
+                    let c = {
+                        'X-SESSION': cookie_xsession,
+                        'SSO-SID': cookie_sid
+                    };
+                    fs.writeFile(cookieFile, JSON.stringify(c), (e) => {
+                        if (e) log.e(e);
+                    });
                 });
             }
         }
@@ -192,7 +211,7 @@ function login(loginInfo) {
  */
 function getObjsStep1() {
     httpGet({
-        protoHost: PROTO_HOST,
+        baseUrl: BASE_URL,
         path: '/sso/oauth/authorize',
         query: {
             'client_id': 'party-build-knowledge',
@@ -218,7 +237,7 @@ function getObjsStep1() {
 function getObjsStep2(urlStr) {
     let { protocol, hostname, pathname, port, query } = urlParser.parse(urlStr, true);
     httpGet({
-        protoHost: `${protocol}//${hostname}`,
+        baseUrl: `${protocol}//${hostname}`,
         path: pathname,
         query: query,
         headers: {
@@ -239,13 +258,15 @@ function getObjsStep2(urlStr) {
             if (h) {
                 log.d('登录成功!');
                 //最终答题需要的登录信息
+                //更新请求头
+                addHeader('user_hash', h);
                 //缓存登录信息
-                let userInfo = JSON.stringify({
+                let objs = JSON.stringify({
                     usetype: "0",
                     hassh: h,
                     orgId: "0"
                 });
-                fs.writeFile(loginCacheFile, userInfo, (e) => {
+                fs.writeFile(loginCacheFile, objs, (e) => {
                     if (e) log.e(e);
                 });
 
@@ -257,4 +278,7 @@ function getObjsStep2(urlStr) {
 
 module.exports = checkLogin;
 
-// checkLogin();
+//for test
+if (require.main === module) {
+    checkLogin();
+}
