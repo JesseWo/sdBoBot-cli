@@ -36,16 +36,12 @@ function checkLogin(next) {
         //更新请求头
         addHeader('user_hash', hassh);
         addHeader('Cookie', xSession);
-        next();
+        next(hassh);
         return;
     }
     log.d('未检测到缓存的登录信息');
     nextAction = next;
     visitLoginPage();
-}
-
-checkLogin.then = (next) => {
-    nextAction = next;
 }
 
 /**
@@ -61,7 +57,7 @@ function visitLoginPage() {
         }
     }, (statusCode, headers, data) => {
         if (statusCode == 200) {
-            const cookieArr = headers['set-cookie'];//返回一个数组
+            const cookieArr = headers['set-cookie']; //返回一个数组
             log.d(`set-cookie: ${cookieArr}`);
             let { 'SSO-SID': sid } = cookieParser.parse(cookieArr[0]);
             cookie_sid = `SSO-SID=${sid}`;
@@ -184,7 +180,7 @@ function login(loginInfo) {
                         'User-Agent': UA
                     }
                 }, (statusCode, headers, rawData) => {
-                    const cookieArr = headers['set-cookie'];//返回一个数组
+                    const cookieArr = headers['set-cookie']; //返回一个数组
                     log.d(`set-cookie: ${cookieArr}`);
                     let { 'X-SESSION': xSession } = cookieParser.parse(cookieArr[0]);
                     cookie_xsession = `X-SESSION=${xSession}`;
@@ -280,5 +276,5 @@ module.exports = checkLogin;
 
 //for test
 if (require.main === module) {
-    checkLogin();
+    visitLoginPage();
 }

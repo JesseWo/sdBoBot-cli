@@ -4,6 +4,7 @@ const http = require('http');
 const https = require('https');
 const querystring = require('querystring');
 const urlParser = require("url");
+const log = require('./utils/logUtils');
 
 let BASE_URL = 'http://xxjs.dtdjzx.gov.cn';
 
@@ -11,7 +12,7 @@ let commonHeaders = {
     'Content-Type': 'application/json',
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36',
     'Origin': 'http://xxjs.dtdjzx.gov.cn',
-    'Referer': 'http://xxjs.dtdjzx.gov.cn/kaishijingsai.html',  //请求来源
+    'Referer': 'http://xxjs.dtdjzx.gov.cn/kaishijingsai.html', //请求来源
     'system-type': 'web',
     // Cookie: X-SESSION=e1f1733f-103f-4013-96e2-7f17ad8b026b
     //X-Requested-With: XMLHttpRequest
@@ -60,9 +61,11 @@ function httpRequest(protocol, options, data, callback) {
 }
 
 function get({ baseUrl = BASE_URL, headers = commonHeaders, path, query }, callback) {
-    let { protocol, hostname } = urlParser.parse(baseUrl);
+    let { protocol, hostname, port } = urlParser.parse(baseUrl);
+    port = port || (protocol == 'https:' ? 443 : 80);
     const options = {
         hostname: hostname,
+        port: port,
         path: `${path}?${querystring.stringify(query)}`,
         method: 'GET',
         headers: headers
@@ -71,9 +74,11 @@ function get({ baseUrl = BASE_URL, headers = commonHeaders, path, query }, callb
 }
 
 function post({ baseUrl = BASE_URL, headers = commonHeaders, path, body = '' }, callback) {
-    let { protocol, hostname } = urlParser.parse(baseUrl);
+    let { protocol, hostname, port } = urlParser.parse(baseUrl);
+    port = port || (protocol == 'https:' ? 443 : 80);
     const options = {
         hostname: hostname,
+        port: port,
         path: path,
         method: 'POST',
         headers: headers
