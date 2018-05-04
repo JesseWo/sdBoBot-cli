@@ -31,7 +31,7 @@ function httpRequest(protocol, options, data, callback) {
         console.log(`状态码: ${statusCode}`);
         console.log(`响应头: ${JSON.stringify(headers)}`);
         const contentType = headers['content-type'];
-        if (contentType && contentType.search('image/') != -1) {
+        if (/image\//.test(contentType)) {
             res.setEncoding('binary');
         } else {
             res.setEncoding('utf8');
@@ -41,7 +41,8 @@ function httpRequest(protocol, options, data, callback) {
         res.on('end', () => {
             try {
                 //对于json数据,优先解析为obj 然后再传递
-                if (contentType && contentType.search('application/json') != -1) {
+                if (/application\/json/.test(contentType)) {
+                    log.d(rawData);
                     const body = JSON.parse(rawData);
                     callback(statusCode, headers, body);
                 } else {

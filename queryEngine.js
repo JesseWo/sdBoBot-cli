@@ -160,7 +160,11 @@ function query(questionBank, subjectInfoList) {
             for (let i = 0; i < inputStr.length; i++) {
                 let c = inputStr.charAt(i);
                 optionInfoList.forEach(opt => {
-                    if (opt.optionType == c) opt.isRight = '1';
+                    if (opt.optionType.toUpperCase() == c) {
+                        opt.isRight = '1';
+                    } else {
+                        opt.isRight = opt.isRight || '0';
+                    }
                 });
             }
 
@@ -177,5 +181,11 @@ function query(questionBank, subjectInfoList) {
 
 module.exports = {
     query: query,
-    failureMap: failureMap
+    getFailureList: () => {
+        let arr = [];
+        failureMap.forEach((value, key, map) => {
+            arr.push(value);
+        });
+        return arr;
+    }
 };

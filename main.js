@@ -88,9 +88,9 @@ function submit(result) {
             let totalScore = data.data.totalScore;
 
             //满分则上传更新题库
-            if (totalScore == 100 && queryEngine.size > 0) {
-                //todo
-
+            let arr = queryEngine.getFailureList();
+            if (totalScore == 100 && arr.length > 0) {
+                updateFailureList(arr);
             }
 
             log.d(`总分:${totalScore}, 用时${useTime}`);
@@ -98,6 +98,25 @@ function submit(result) {
 
         } else {
             log.e(`交卷失败! ${data.code} Error ${data.msg}`);
+        }
+    });
+}
+
+/**
+ * 更新错题集
+ * @param {Iterable} failureList 
+ */
+function updateFailureList(failureList) {
+    let jString = JSON.stringify(failureList);
+    httpPost({
+        baseUrl: 'http://wooox.320.io:3110',
+        path: '/sdbeacononline/updatefailurelist',
+        body: jString
+    }, (statusCode, headers, data) => {
+        if (statusCode == 200) {
+            log.e(`错题集更新成功!`);
+        } else {
+            log.e(`错题集更新失败!`);
         }
     });
 }
