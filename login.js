@@ -22,6 +22,7 @@ const cookieFile = './db/cookie.json';
 let cookie_sid;
 let cookie_xsession;
 let nextAction;
+let validateCode;
 
 function checkLogin(next) {
     let hassh, xSession;
@@ -83,18 +84,9 @@ function refreshValidateCode() {
             'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
         }
     }, (statusCode, headers, rawData) => {
-        //缓存验证码图片
-        const contentType = headers['content-type'];
-        let vcodeFileName = 'invalide';
-        if (contentType.search('image/jpeg') != -1) {
-            vcodeFileName = './images/vcode.jpg';
-        } else if (contentType.search('image/png') != -1) {
-            vcodeFileName = './images/vcode.png';
-        }
-        fs.writeFileSync(vcodeFileName, rawData, 'binary');
-        let vcodePath = path.join(__dirname, vcodeFileName);
-        log.d(`缓存验证码图片: ${vcodePath}`);
-        //提示用户输入
+        //验证码ocr
+        vcodeOcr(rawData);
+        //提示用户输入 用户名和密码
         let username;
         do {
             username = readlineSync.question('请输入用户名:').trim();
@@ -103,17 +95,46 @@ function refreshValidateCode() {
         do {
             password = readlineSync.question('请输入密码:').trim();
         } while (!password);
-        //自动打开图片或者OCR自动识别
-        openImage(vcodePath);
-        let validateCode;
-        do {
-            validateCode = readlineSync.question('请输入验证码:').trim();
-        } while (!validateCode);
+        //若未能及时识别则缓存验证码图片并自动打开,手动输入
+        if (!validateCode) {
+            //缓存验证码图片
+            const contentType = headers['content-type'];
+            let vcodeFileName = 'invalide';
+            if (/image\/jpeg/.test(contentType)) {
+                vcodeFileName = './images/vcode.jpg';
+            } else if (/image\/png/.test(contentType)) {
+                vcodeFileName = './images/vcode.png';
+            }
+            fs.writeFileSync(vcodeFileName, rawData, 'binary');
+            let vcodePath = path.join(__dirname, vcodeFileName);
+            log.d(`缓存验证码图片: ${vcodePath}`);
+            //自动打开图片
+            openImage(vcodePath);
+            //提示用户输入 验证码
+            do {
+                validateCode = readlineSync.question('请输入验证码:').trim();
+            } while (!validateCode);
+        }
         login({
             username: username,
             password: password,
             validateCode: validateCode
         });
+    });
+}
+
+function vcodeOcr(rawData) {
+    httpPost({
+        baseUrl: 'http://wooox.320.io:3110',
+        path: '/sdbeacononline/vcodeocr',
+        headers: {
+            "Content-Type": "image/jpeg"
+        },
+        body: rawData
+    }, (statusCode, headers, body) => {
+        validateCode = body.data;
+        log.d(`vcode ocr result: ${validateCode}`);
+
     });
 }
 

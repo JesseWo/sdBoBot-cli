@@ -17,7 +17,6 @@
     "dependencies": {
         "colors": "latest",
         "readline-sync": "latest",
-        "open": "latest",
-        "node-tesseract": "latest"
+        "open": "latest"
     }
 }

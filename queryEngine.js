@@ -181,11 +181,5 @@ function query(questionBank, subjectInfoList) {
 
 module.exports = {
     query: query,
-    getFailureList: () => {
-        let arr = [];
-        failureMap.forEach((value, key, map) => {
-            arr.push(value);
-        });
-        return arr;
-    }
+    getFailureList: () => Array.from(failureMap.values)
 };

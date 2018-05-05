@@ -42,7 +42,7 @@ function httpRequest(protocol, options, data, callback) {
             try {
                 //对于json数据,优先解析为obj 然后再传递
                 if (/application\/json/.test(contentType)) {
-                    log.d(rawData);
+                    // log.d(rawData);
                     const body = JSON.parse(rawData);
                     callback(statusCode, headers, body);
                 } else {
