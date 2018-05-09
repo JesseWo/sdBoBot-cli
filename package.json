@@ -16,7 +16,8 @@
     },
     "dependencies": {
         "colors": "latest",
+        "open": "latest",
         "readline-sync": "latest",
-        "open": "latest"
+        "superagent": "^3.8.3"
     }
 }

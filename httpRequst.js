@@ -24,10 +24,10 @@ function addHeader(key, value) {
 
 function httpRequest(protocol, options, data, callback) {
     console.log(`${options.method}: ${protocol}//${options.hostname}${options.path}`);
-    let client = protocol == 'https:' ? https : http;
+    let client = protocol === 'https:' ? https : http;
 
     const req = client.request(options, (res) => {
-        const { statusCode, headers } = res;
+        const {statusCode, headers} = res;
         console.log(`状态码: ${statusCode}`);
         console.log(`响应头: ${JSON.stringify(headers)}`);
         const contentType = headers['content-type'];
@@ -37,7 +37,9 @@ function httpRequest(protocol, options, data, callback) {
             res.setEncoding('utf8');
         }
         let rawData = '';
-        res.on('data', (chunk) => { rawData += chunk; });
+        res.on('data', (chunk) => {
+            rawData += chunk;
+        });
         res.on('end', () => {
             try {
                 //对于json数据,优先解析为obj 然后再传递
@@ -61,9 +63,9 @@ function httpRequest(protocol, options, data, callback) {
     req.end();
 }
 
-function get({ baseUrl = BASE_URL, headers = commonHeaders, path, query }, callback) {
-    let { protocol, hostname, port } = urlParser.parse(baseUrl);
-    port = port || (protocol == 'https:' ? 443 : 80);
+function get({baseUrl = BASE_URL, headers = commonHeaders, path, query}, callback) {
+    let {protocol, hostname, port} = urlParser.parse(baseUrl);
+    port = port || (protocol === 'https:' ? 443 : 80);
     const options = {
         hostname: hostname,
         port: port,
@@ -74,9 +76,9 @@ function get({ baseUrl = BASE_URL, headers = commonHeaders, path, query }, callb
     httpRequest(protocol, options, '', callback);
 }
 
-function post({ baseUrl = BASE_URL, headers = commonHeaders, path, body = '' }, callback) {
-    let { protocol, hostname, port } = urlParser.parse(baseUrl);
-    port = port || (protocol == 'https:' ? 443 : 80);
+function post({baseUrl = BASE_URL, headers = commonHeaders, path, body = ''}, callback) {
+    let {protocol, hostname, port} = urlParser.parse(baseUrl);
+    port = port || (protocol === 'https:' ? 443 : 80);
     const options = {
         hostname: hostname,
         port: port,

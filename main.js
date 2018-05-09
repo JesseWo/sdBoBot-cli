@@ -4,7 +4,7 @@
  */
 const debug = false;
 
-const { httpGet, httpPost, addHeader } = require('./httpRequst');
+const {httpGet, httpPost} = require('./httpRequst');
 const queryEngine = require('./queryEngine');
 const fs = require('fs');
 const log = require('./utils/logUtils');
@@ -47,23 +47,22 @@ function mockHumanBehaviors(totalSubject) {
     });
     let repeatX = maxArr.length > 0 ? maxArr[maxArr.length - 1] : 0 //重复x 坐标的次数
 
-    let humanBehavior = {
+    return {
         sameNum: repeatX,
         clickX: clientXArr.join(','),
         clickY: clientXArrY.join(',')
     };
-    return humanBehavior;
 }
 
 /**
  * 交卷
  * POST http://xxjs.dtdjzx.gov.cn/quiz-api/chapter_info/countScore
- * 
+ *
  * 机器人校验
  * 1. 记录点击[下一题按钮]的坐标
  * 2. 记录重复X坐标的次数
- * 
- * @param {答题数据} result 
+ *
+ * @param {答题数据} result
  */
 function submit(result) {
     let jString = JSON.stringify(result);
@@ -104,7 +103,7 @@ function submit(result) {
 
 /**
  * 更新错题集
- * @param {Iterable} failureList 
+ * @param {Iterable} failureList
  */
 function updateFailureList(failureList) {
     let jString = JSON.stringify(failureList);
@@ -126,7 +125,7 @@ function updateChapterId(hassh) {
         httpGet({
             baseUrl: 'http://wooox.320.io:3110',
             path: '/sdbeacononline/getchapterid',
-            query: { userId: hassh },
+            query: {userId: hassh},
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -145,7 +144,7 @@ function updateChapterId(hassh) {
 /**
  * 获取试题库(答案)
  * GET http://xxjs.dtdjzx.gov.cn/quiz-api/subject_info/list?chapterId=7j0d8qp4r2g28ogjt5hq0cbhne
- * 
+ *
  * 三月题库: 7j0d8qp4r2g28ogjt5hq0cbhne
  * 四月题库: qbqkfcn2fuihtqtnvo5t8e3mri
  */
@@ -209,13 +208,13 @@ function getSubjectInfoList(questionBank) {
                     });
                 }
 
-                const { recordId, roundOnlyId, orderId, totalSubject, subjectInfoList } = data.data;
+                const {recordId, roundOnlyId, orderId, totalSubject, subjectInfoList} = data.data;
                 log.d(`开始答题, 共计${totalSubject}题.\n`);
 
                 //查询答案
                 let answerList = queryEngine.query(questionBank, subjectInfoList);
                 //模拟点击数据
-                let { sameNum, clickX, clickY } = mockHumanBehaviors(totalSubject);
+                let {sameNum, clickX, clickY} = mockHumanBehaviors(totalSubject);
                 //构建交卷body
                 let result = {
                     recordId: recordId,
@@ -238,7 +237,7 @@ function getSubjectInfoList(questionBank) {
 function preSubmit(result) {
     return new Promise((onSuccess, onFailure) => {
         let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
-        if (answer == 'Y') {
+        if (answer === 'Y') {
             let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
             while (!delay.match(/^[\d]+$/g) || delay < 15) {
                 delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
@@ -252,7 +251,7 @@ function preSubmit(result) {
                     onSuccess(result)
                 }
             }, 1000);
-        } else if (answer == 'N') {
+        } else if (answer === 'N') {
             log.d('暂不交卷...');
         } else {
             // log.e('输入错误, 暂不交卷...');
@@ -266,12 +265,12 @@ function isQuestionBankValid(qbData) {
     let startIndex = chapterTitle.indexOf('年') + 1;
     let endIndex = chapterTitle.indexOf('月');
     let m = parseInt(chapterTitle.substring(startIndex, endIndex));
-    return new Date().getMonth() + 1 == m;
+    return new Date().getMonth() + 1 === m;
 }
 
 function main() {
-    new Promise(login)
-        .then((hassh) => {
+    login()
+        .then(hassh => {
             //题库有效性校验
             let qbData;
             try {

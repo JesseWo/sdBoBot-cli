@@ -1,111 +1,133 @@
 'use strict'
 
-const { httpGet, httpPost, addHeader } = require('./httpRequst');
-const https = require('https');
+const {addHeader} = require('./httpRequst');
+const request = require('superagent');
 const log = require('./utils/logUtils');
 const readlineSync = require('readline-sync');
 const urlParser = require("url");
 const cookieParser = require('./utils/cookieParser');
 const fs = require('fs');
 const path = require('path');
-const querystring = require('querystring');
 const os = require('os');
 const open = require("open");
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const BASE_URL = 'https://sso.dtdjzx.gov.cn';
 const HOST = 'sso.dtdjzx.gov.cn';
+const MY_URL = 'http://wooox.320.io:3110';
 
 const loginCacheFile = './db/objs.json';
 const cookieFile = './db/cookie.json';
 
 let cookie_sid;
-let cookie_xsession;
-let nextAction;
-let validateCode;
 
-function checkLogin(next) {
+//验证码识别失败次数, 超过2次则人工识别
+let vcodeOcrFailedTimes = 0;
+
+function checkLogin() {
     let hassh, xSession;
     try {
         hassh = require(loginCacheFile).hassh;
         xSession = require(cookieFile)['X-SESSION'];
     } catch (error) {
-        log.e(error);
+        //ignore
     }
     if (hassh && xSession) {
         log.d('检测到缓存的登录信息!');
         //更新请求头
         addHeader('user_hash', hassh);
         addHeader('Cookie', xSession);
-        next(hassh);
-        return;
+        return hassh;
+    } else {
+        log.d('未检测到缓存的登录信息');
+        return null;
     }
-    log.d('未检测到缓存的登录信息');
-    nextAction = next;
-    visitLoginPage();
+}
+
+async function startLogin() {
+    try {
+        let info = await collectLoginInfo();
+        let success = await submit(info);
+        if (success) {
+            //登录成功
+            return await onLoginSuccess();
+        } else {
+            //登录失败
+            log.e('用户名或密码错误!请重新输入..');
+            //刷新验证码, 重新登录
+            return await startLogin();
+        }
+    } catch (e) {
+        log.e(e);
+    }
 }
 
 /**
  * 打开登录页面(获取SSO-SID)
  */
 function visitLoginPage() {
-    httpGet({
-        baseUrl: BASE_URL,
-        path: '/sso/login',
-        headers: {
-            'Upgrade-Insecure-Requests': 1,
-            'User-Agent': UA,
-        }
-    }, (statusCode, headers, data) => {
-        if (statusCode == 200) {
-            const cookieArr = headers['set-cookie']; //返回一个数组
-            log.d(`set-cookie: ${cookieArr}`);
-            let { 'SSO-SID': sid } = cookieParser.parse(cookieArr[0]);
-            cookie_sid = `SSO-SID=${sid}`;
-            //获取验证码图片
-            refreshValidateCode();
-        }
+    return new Promise((resolve, reject) => {
+        request
+            .get(BASE_URL + '/sso/login')
+            .set({
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': UA,
+            })
+            .then(res => {
+                if (res.status === 200) {
+                    const cookieArr = res.header['set-cookie']; //返回一个数组
+                    log.d(`set-cookie: ${cookieArr}`);
+                    let {'SSO-SID': sid} = cookieParser.parse(cookieArr[0]);
+                    cookie_sid = `SSO-SID=${sid}`;
+
+                    resolve();
+                } else {
+                    reject();
+                }
+            });
     });
 }
 
 /**
- * 刷新验证码
+ * 收集登录所需的信息
+ * @returns {Promise<{username: *, password: *, validateCode: *}>}
  */
-function refreshValidateCode() {
-    httpGet({
-        baseUrl: BASE_URL,
-        path: '/sso/validateCodeServlet',
-        query: { t: Math.random() * 10 },
-        headers: {
-            'Upgrade-Insecure-Requests': 1,
-            'User-Agent': UA,
-            'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
-            'Cookie': cookie_sid,
-            'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
+async function collectLoginInfo() {
+    try {
+        //获取验证码图片
+        let {body: imageBuffer, type: contentType} = await getVcode();
+        //ocr识别
+        let validateCode;
+        if (vcodeOcrFailedTimes < 2) {
+            validateCode = await vcodeOcr(imageBuffer);
+            log.d(`vcode ocr result: ${validateCode}`);
         }
-    }, (statusCode, headers, rawData) => {
-        //验证码ocr
-        vcodeOcr(rawData);
-        //提示用户输入 用户名和密码
-        let username;
-        do {
+        //读取用户名和密码
+        let username, password;
+        try {
+            let login = require('./db/login');
+            username = login.username;
+            password = login.password;
+        } catch (e) {
+            //ignore
+        }
+        //若读取失败则提示用户输入
+        while (!username) {
             username = readlineSync.question('请输入用户名:').trim();
-        } while (!username);
-        let password;
-        do {
+        }
+        while (!password) {
             password = readlineSync.question('请输入密码:').trim();
-        } while (!password);
-        //若未能及时识别则缓存验证码图片并自动打开,手动输入
+        }
+        //若未能识别则缓存验证码图片并自动打开,手动输入
         if (!validateCode) {
             //缓存验证码图片
-            const contentType = headers['content-type'];
-            let vcodeFileName = 'invalide';
+            let vcodeFileName = './images/vcode';
             if (/image\/jpeg/.test(contentType)) {
-                vcodeFileName = './images/vcode.jpg';
+                vcodeFileName += '.jpg';
             } else if (/image\/png/.test(contentType)) {
-                vcodeFileName = './images/vcode.png';
+                vcodeFileName += '.png';
             }
-            fs.writeFileSync(vcodeFileName, rawData, 'binary');
+            fs.writeFileSync(vcodeFileName, imageBuffer, 'binary');
             let vcodePath = path.join(__dirname, vcodeFileName);
             log.d(`缓存验证码图片: ${vcodePath}`);
             //自动打开图片
@@ -115,26 +137,56 @@ function refreshValidateCode() {
                 validateCode = readlineSync.question('请输入验证码:').trim();
             } while (!validateCode);
         }
-        login({
+        return {
             username: username,
             password: password,
             validateCode: validateCode
-        });
+        };
+    } catch (e) {
+        log.e(e);
+    }
+
+}
+
+function getVcode() {
+    return new Promise((resolve, reject) => {
+        request
+            .get(BASE_URL + "/sso/validateCodeServlet")
+            .query({t: Math.random() * 10})
+            .set({
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': UA,
+                'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
+                'Cookie': cookie_sid,
+                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
+            })
+            .then(res => {
+                if (res.error) {
+                    reject(res.error);
+                } else {
+                    resolve(res);
+                }
+            })
+            .catch(err => {
+                log.e(err);
+            })
     });
 }
 
-function vcodeOcr(rawData) {
-    httpPost({
-        baseUrl: 'http://wooox.320.io:3110',
-        path: '/sdbeacononline/vcodeocr',
-        headers: {
-            "Content-Type": "image/jpeg"
-        },
-        body: rawData
-    }, (statusCode, headers, body) => {
-        validateCode = body.data;
-        log.d(`vcode ocr result: ${validateCode}`);
-
+function vcodeOcr(buffer) {
+    return new Promise((resolve, reject) => {
+        request
+            .post(`${MY_URL}/sdbeacononline/vcodeocr`)
+            .attach('file', buffer, "vcode")//必须加上文件名
+            .then(res => {
+                vcodeOcrFailedTimes++;
+                if (res.error) {
+                    reject(res.error);
+                } else {
+                    resolve(res.body.data);
+                }
+            })
+            .catch(err => log.e(err));
     });
 }
 
@@ -164,138 +216,137 @@ function openImage(imagePath) {
 }
 
 /**
- * 正式登陆(获取X-session)
- * @param {*} loginInfo 
+ * 正式登陆
+ * @param loginInfo
+ * @returns {Promise<void>}
  */
-function login(loginInfo) {
-    httpPost({
-        baseUrl: BASE_URL,
-        path: '/sso/login',
-        headers: {
-            'Upgrade-Insecure-Requests': 1,
-            'User-Agent': UA,
-            'Origin': BASE_URL,
-            'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
-            'Cookie': cookie_sid,
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: querystring.stringify(loginInfo)
-    }, (statusCode, headers, rawData) => {
-        if (statusCode == 302) {
-            let location = headers.location.trim();
-            log.d(`redirect to: ${location}`);
-            if (location == 'https://sso.dtdjzx.gov.cn/sso/login?error') {
-                //登录失败
-                log.e('用户名或密码错误!请重新输入..');
-                //刷新验证码, 重新登录
-                refreshValidateCode();
-            } else {
-                //登录成功
-                httpGet({
-                    baseUrl: 'https://www.dtdjzx.gov.cn',
-                    path: '/member/',
-                    headers: {
-                        'Host': 'www.dtdjzx.gov.cn',
-                        'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
-                        'Upgrade-Insecure-Requests': 1,
-                        'User-Agent': UA
-                    }
-                }, (statusCode, headers, rawData) => {
-                    const cookieArr = headers['set-cookie']; //返回一个数组
-                    log.d(`set-cookie: ${cookieArr}`);
-                    let { 'X-SESSION': xSession } = cookieParser.parse(cookieArr[0]);
-                    cookie_xsession = `X-SESSION=${xSession}`;
-                    getObjsStep1();
-                    //更新请求头
-                    addHeader('Cookie', cookie_xsession);
-                    //缓存cookie
-                    let c = {
-                        'X-SESSION': cookie_xsession,
-                        'SSO-SID': cookie_sid
-                    };
-                    fs.writeFile(cookieFile, JSON.stringify(c), (e) => {
-                        if (e) log.e(e);
-                    });
-                });
-            }
-        }
+function submit(loginInfo) {
+    return new Promise((resolve, reject) => {
+        request
+            .post(BASE_URL + "/sso/login")
+            .redirects(0)//禁止自动重定向
+            .set({
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': UA,
+                'Origin': BASE_URL,
+                'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
+                'Cookie': cookie_sid,
+            })
+            .type('form')
+            .send(loginInfo)
+            .catch(err => {
+                if (err.status === 302) {
+                    let location = err.response.header['location'];
+                    log.d(`redirect to: ${location}`);
+                    resolve(location !== 'https://sso.dtdjzx.gov.cn/sso/login?error');
+                } else {
+                    reject(`status: ${err.status}, no redirect!`);
+                }
+            });
     });
 }
 
 /**
- * 根据cookie获取重定向地址
+ * 缓存登录信息
  * GET https://sso.dtdjzx.gov.cn/sso/oauth/authorize?client_id=party-build-knowledge&redirect_uri=http://xxjs.dtdjzx.gov.cn/quiz-api/user/sso_callback%3fc_type=code&response_type=code
+ * @returns {Promise<void>}
  */
-function getObjsStep1() {
-    httpGet({
-        baseUrl: BASE_URL,
-        path: '/sso/oauth/authorize',
-        query: {
-            'client_id': 'party-build-knowledge',
-            'redirect_uri': 'http://xxjs.dtdjzx.gov.cn/quiz-api/user/sso_callback?c_type=code',
-            'response_type': 'code'
-        },
-        headers: {
-            'Host': HOST,
-            'Referer': 'http://xxjs.dtdjzx.gov.cn/',
-            'Upgrade-Insecure-Requests': 1,
-            'User-Agent': UA,
-            'Cookie': `${cookie_sid}; ${cookie_xsession}`
+async function onLoginSuccess() {
+    try {
+        //获取session
+        let cookie_xsession = await getSession();
+        //更新请求头
+        addHeader('Cookie', cookie_xsession);
+        //缓存cookie
+        fs.writeFile(cookieFile, JSON.stringify({
+            'X-SESSION': cookie_xsession,
+            'SSO-SID': cookie_sid
+        }), (e) => {
+            if (e) log.e(e);
+        });
+        //获取objs
+        let location = await new Promise((resolve, reject) => {
+            request
+                .get(BASE_URL + '/sso/oauth/authorize')
+                .redirects(1)//重定向一次
+                .set({
+                    'Host': HOST,
+                    'Referer': 'http://xxjs.dtdjzx.gov.cn/',
+                    'Upgrade-Insecure-Requests': 1,
+                    'User-Agent': UA,
+                    'Cookie': `${cookie_sid}; ${cookie_xsession}`
+                })
+                .query({
+                    'client_id': 'party-build-knowledge',
+                    'redirect_uri': 'http://xxjs.dtdjzx.gov.cn/quiz-api/user/sso_callback?c_type=code',
+                    'response_type': 'code'
+                })
+                .catch(err => {
+                    if (err.status === 302) {
+                        const {location} = err.response.header;
+                        log.d(`redirect to: ${location}`);
+                        resolve(location);
+                    } else {
+                        reject(`status: ${err.status}, no redirect!`);
+                    }
+                })
+        });
+        //解析重定向的url,获取hassh
+        //http://xxjs.dtdjzx.gov.cn/index.html?h=qwertyuiop
+        let {query: {h}} = urlParser.parse(location, true);
+        if (h) {
+            log.d('登录成功!');
+            //最终答题需要的登录信息
+            //更新请求头
+            addHeader('user_hash', h);
+            //缓存登录信息
+            let objs = JSON.stringify({
+                usetype: "0",
+                hassh: h,
+                orgId: "0"
+            });
+            fs.writeFile(loginCacheFile, objs, (e) => {
+                if (e) log.e(e);
+            });
+            return h;
         }
-    }, (statusCode, headers, data) => {
-        if (statusCode == 302) {
-            const { location } = headers;
-            log.d(`redirect to: ${location}`);
-            getObjsStep2(location);
-        }
+    } catch (e) {
+        log.e(e);
+    }
+}
+
+function getSession() {
+    return new Promise((resolve, reject) => {
+        request
+            .get('https://www.dtdjzx.gov.cn/member/')
+            .set({
+                'Host': 'www.dtdjzx.gov.cn',
+                'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': UA
+            })
+            .then(res => {
+                const cookieArr = res.header['set-cookie']; //返回一个数组
+                log.d(`set-cookie: ${cookieArr}`);
+                let {'X-SESSION': xSession} = cookieParser.parse(cookieArr[0]);
+                resolve(`X-SESSION=${xSession}`);
+            })
+            .catch(err => log.e(err));
     });
 }
 
-function getObjsStep2(urlStr) {
-    let { protocol, hostname, pathname, port, query } = urlParser.parse(urlStr, true);
-    httpGet({
-        baseUrl: `${protocol}//${hostname}`,
-        path: pathname,
-        query: query,
-        headers: {
-            'Host': hostname,
-            'Referer': 'http://xxjs.dtdjzx.gov.cn/',
-            'Upgrade-Insecure-Requests': 1,
-            'User-Agent': UA,
-            'Cookie': `JSESSIONID=C201B14DB29B92E20177737E22CD290D; ${cookie_xsession}`
-        }
-
-    }, (statusCode, headers, data) => {
-        if (statusCode == 302) {
-            const { location } = headers;
-            log.d(`redirect to: ${location}`);
-            //解析重定向的url,获取hassh
-            //http://xxjs.dtdjzx.gov.cn/index.html?h=qwertyuiop
-            let { query: { h } } = urlParser.parse(location, true);
-            if (h) {
-                log.d('登录成功!');
-                //最终答题需要的登录信息
-                //更新请求头
-                addHeader('user_hash', h);
-                //缓存登录信息
-                let objs = JSON.stringify({
-                    usetype: "0",
-                    hassh: h,
-                    orgId: "0"
-                });
-                fs.writeFile(loginCacheFile, objs, (e) => {
-                    if (e) log.e(e);
-                });
-
-                nextAction(h);
-            }
-        }
-    });
+async function main() {
+    let hassh = checkLogin();
+    if (!hassh) {
+        await visitLoginPage();
+        hassh = await startLogin();
+    }
+    return hassh;
 }
 
-module.exports = checkLogin;
+module.exports = main;
 
 //for test
 if (require.main === module) {
-    visitLoginPage();
+    main();
 }

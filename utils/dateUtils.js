@@ -26,5 +26,6 @@ Date.prototype.Format = function (fmt) { //author: meizz
 // var time2 = new Date().Format("yyyy-MM-dd HH:mm:ss");
 
 module.exports = (formatStr) => {
+    formatStr = formatStr || 'yyyy-MM-dd HH:mm:ss';
     return new Date().Format(formatStr);
 }

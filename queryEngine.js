@@ -21,7 +21,7 @@ function query(questionBank, subjectInfoList) {
         const subjectInfo = subjectInfoList[i];
         const { subjectTitle, subjectType, optionInfoList } = subjectInfo;
 
-        log.i(`${i + 1}.[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
+        log.i(`${i + 1}.[${subjectType === '0' ? '单选' : '多选'}] ${subjectTitle}`);
 
         //遍历题库查询答案
         let correctOptionArr;
@@ -31,9 +31,9 @@ function query(questionBank, subjectInfoList) {
             const answerSubjectTitle = answerSubjectInfo.subjectTitle;
             //去除题目中的特殊字符，然后进行匹配
             const questionRegex = /[ ,.，。、；：！？《》“”……—\(\)（）\\n]/g;
-            if (subjectTitle.replace(questionRegex, '') == answerSubjectTitle.replace(questionRegex, '')
-                && subjectType == answerSubjectInfo.subjectType) {
-                let correctAnswerOptsArr = answerSubjectInfo.optionInfoList.filter((element) => element.isRight == '1');
+            if (subjectTitle.replace(questionRegex, '') === answerSubjectTitle.replace(questionRegex, '')
+                && subjectType === answerSubjectInfo.subjectType) {
+                let correctAnswerOptsArr = answerSubjectInfo.optionInfoList.filter((element) => element.isRight === '1');
                 correctOptionArr = optionInfoList.filter((element) => {
                     for (const correctAnswerOption of correctAnswerOptsArr) {
                         //去除选项中的特殊字符, 然后进行匹配
@@ -50,14 +50,14 @@ function query(questionBank, subjectInfoList) {
             }
         }
         //step2: ()截断匹配
-        if (!correctOptionArr || correctOptionArr.length == 0) {
+        if (!correctOptionArr || correctOptionArr.length === 0) {
             log.d('完全匹配失败, 尝试截断模糊匹配...');
             for (let j = 0; j < questionBank.length; j++) {
                 const answerSubjectInfo = questionBank[j];
                 const answerSubjectTitle = answerSubjectInfo.subjectTitle;
 
                 let queryArr = subjectTitle.split('（）');
-                if (queryArr.length == 2) {
+                if (queryArr.length === 2) {
                     if (answerSubjectTitle.startsWith(queryArr[0])) {
                         let tmp = answerSubjectTitle.substring(queryArr[0].length);
                         correctOptionArr = optionInfoList.filter((element) => tmp.startsWith(element.optionTitle));
@@ -84,7 +84,7 @@ function query(questionBank, subjectInfoList) {
                 //多选
                 correctedOpts = correctedOptsArr.join(',');
                 correctedOptsDetails = correctedOptsDetailArr.join('\n');
-            } else if (correctOptionArr.length == 1) {
+            } else if (correctOptionArr.length === 1) {
                 //单选
                 correctedOpts = correctedOptsArr[0];
                 correctedOptsDetails = correctedOptsDetailArr[0];
@@ -113,7 +113,7 @@ function query(questionBank, subjectInfoList) {
             let item = value;
             let repeat = false;
             for (const collectorItem of collectorList) {
-                if (item.id == collectorItem.id) {
+                if (item.id === collectorItem.id) {
                     repeat = true;
                     break;
                 }
@@ -141,7 +141,7 @@ function query(questionBank, subjectInfoList) {
             const subjectType = item.subjectType;
             const optionInfoList = item.optionInfoList;
 
-            log.i(`${index + 1}.[${subjectType == '0' ? '单选' : '多选'}] ${subjectTitle}`);
+            log.i(`${index + 1}.[${subjectType === '0' ? '单选' : '多选'}] ${subjectTitle}`);
             optionInfoList.forEach(opt => log.i(`${opt.optionType}.${opt.optionTitle}`));
 
             let inputStr = readlineSync.question('请输入答案(示例: 若单选则输入 A ;若多选则输入 ABC): ').trim().toUpperCase();
@@ -149,8 +149,8 @@ function query(questionBank, subjectInfoList) {
             // var favFood = readlineSync.question('What is your favorite food? ', {
             //     hideEchoBack: true // The typed text on screen is hidden by `*` (default).
             // });
-            while ((subjectType == '0' && !inputStr.match(/^[A-D]{1}$/g))
-                || (subjectType == '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
+            while ((subjectType === '0' && !inputStr.match(/^[A-D]{1}$/g))
+                || (subjectType === '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
                 inputStr = readlineSync.question('输入格式错误, 请重新输入:').trim().toUpperCase();
             }
             let correctedOpts = inputStr.match(/./g).join(',');

@@ -32,7 +32,7 @@ let log = {
 }
 
 function currentTime() {
-    return dateFormat('yyyy-MM-dd HH:mm:ss');
+    return dateFormat();
 }
 
 module.exports = log;
