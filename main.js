@@ -2,7 +2,7 @@
 /**
  * 控制train_data输出
  */
-const debug = false;
+const debug = require('./package').debug;
 
 const {httpGet, httpPost} = require('./httpRequst');
 const queryEngine = require('./queryEngine');

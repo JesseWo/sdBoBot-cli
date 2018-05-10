@@ -1,23 +1,36 @@
 {
-    "name": "BeaconOnlineBot",
-    "version": "0.9.7",
-    "description": "灯塔在线答题机器人",
-    "main": "main.js",
-    "scripts": {
-        "start": "node main.js",
-        "test": "node ./test/test.js"
-    },
-    "keywords": [],
-    "author": "Jessewo",
-    "license": "GPL-3.0",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/JesseWo/sdBeaconOnline.git"
-    },
-    "dependencies": {
-        "colors": "latest",
-        "open": "latest",
-        "readline-sync": "latest",
-        "superagent": "^3.8.3"
-    }
+  "name": "BeaconOnlineBot",
+  "version": "0.9.7",
+  "description": "灯塔在线答题机器人",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "node ./test/test.js"
+  },
+  "keywords": [
+    "BeanconOnline",
+    "灯塔",
+    "党建",
+    "在线"
+  ],
+  "author": {
+    "name": "Jessewo",
+    "url": "https://github.com/JesseWo/sdBeaconOnlineBot"
+  },
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JesseWo/sdBeaconOnlineBot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JesseWo/sdBeaconOnlineBot/issues",
+    "email": "wangzhenxingvip@gmail.com"
+  },
+  "dependencies": {
+    "colors": "latest",
+    "open": "latest",
+    "readline-sync": "latest",
+    "superagent": "^3.8.3"
+  },
+  "debug": false
 }
