@@ -171,7 +171,9 @@ function queryAnswer(userId, subjectInfoList) {
             .post(myUrl + "/sdbeacononline/queryanswer")
             .send({userId, subjectInfoList})
             .then(res => {
-                resolve(res.body.data);
+                let queryResult = res.body.data;
+                log.i(queryResult.queryLog);
+                resolve(queryResult);
             })
             .catch(err => {
                 log.e(err);
