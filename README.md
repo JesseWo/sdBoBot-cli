@@ -1,12 +1,12 @@
 ## sdBeaconOnline 半自动答题机器人
 一键 登录(验证码OCR识别) + 更新题库 + 获取试题 + 自动答题 + 交卷
 
-2018.05.11更新:
-1. 更新2017.12-2018.05所有题库
-2. 前后端分离,[Server端](https://github.com/JesseWo/sdBeaconOnlineBot-server)主要集成功能: 登录验证码OCR | 答案检索 | 错题集
+> 2018.05.11更新:
+> 1. 更新2017.12-2018.05所有题库
+> 2. 前后端分离, **[Server端](https://github.com/JesseWo/sdBeaconOnlineBot-server)** 主要集成功能: 登录验证码OCR | 答案检索 | 错题集
 
 
-[给普通用户的使用说明](https://www.jianshu.com/p/2f32b76b9bf4)
+#### 附: [给普通用户的使用说明](https://www.jianshu.com/p/2f32b76b9bf4)
 
 ## 声明
 此project仅为个人学习node.js所用,若用于他用,后果请自负...
@@ -25,8 +25,11 @@
 ```
 npm install
 ```
+配置文件
 
-```package.json``` 文件中的 ```myUrl``` 字段为server端url,可以自行配置
+```config.json```
+
+其中 ```myUrl``` 字段为server端url,可以自行配置; 其他字段见名知意
 
 ## 启动
 ```
@@ -47,7 +50,7 @@ npm start
 GPL-3.0
 
 
-## 关于
+## 来杯咖啡
 ---
 
 冒天下之大不韪写了这么个东西, 难道不该请俺喝杯咖啡嘛 ^_^

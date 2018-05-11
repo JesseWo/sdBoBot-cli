@@ -3,7 +3,7 @@
 /**
  * 控制train_data输出
  */
-const {debug, myUrl} = require('./package');
+const {debug, myUrl, baseUrl, mockHeaders} = require('./config');
 
 //解析命令行参数
 let argv = require('yargs')
@@ -22,7 +22,6 @@ let argv = require('yargs')
     .argv;
 
 const request = require('superagent');
-const {httpPost} = require('./httpRequst');
 const fs = require('fs');
 const log = require('./utils/logUtils');
 const dateFormat = require('./utils/dateUtils');
@@ -54,7 +53,7 @@ function mockHumanBehaviors(totalSubject) {
         clientXArrY.push(y);
 
         if (obj[x]) {
-            obj[x]++
+            obj[x]++;
             maxArr.push(obj[clientXArr[i]]);
         } else {
             obj[x] = 1
@@ -63,7 +62,7 @@ function mockHumanBehaviors(totalSubject) {
     maxArr = maxArr.sort(function (x, y) {
         return x - y
     });
-    let repeatX = maxArr.length > 0 ? maxArr[maxArr.length - 1] : 0 //重复x 坐标的次数
+    let repeatX = maxArr.length > 0 ? maxArr[maxArr.length - 1] : 0; //重复x 坐标的次数
 
     return {
         sameNum: repeatX,
@@ -73,97 +72,11 @@ function mockHumanBehaviors(totalSubject) {
 }
 
 /**
- * 交卷
- * POST http://xxjs.dtdjzx.gov.cn/quiz-api/chapter_info/countScore
- *
- * 机器人校验
- * 1. 记录点击[下一题按钮]的坐标
- * 2. 记录重复X坐标的次数
- *
- * @param {答题数据} result
+ * 查询答案
+ * @param userId
+ * @param subjectInfoList
+ * @returns {Promise<any>}
  */
-function submit(result) {
-    return new Promise((resolve, reject) => {
-        let jString = JSON.stringify(result);
-        log.d(jString);
-        httpPost({
-            path: '/quiz-api/chapter_info/countScore',
-            body: jString
-        }, (statusCode, headers, data) => {
-            if (data.code == 200 && data.success) {
-                log.d(`交卷成功! ${JSON.stringify(data)}`);
-
-                let w_tt = data.data.useTime.split(':');
-                let useTime;
-                if (w_tt[0] !== '00') {
-                    useTime = w_tt[0] + "小时" + w_tt[1] + "分" + w_tt[2] + "秒";
-                } else if (w_tt[1] !== '00') {
-                    useTime = w_tt[1] + "分" + w_tt[2] + "秒";
-                } else {
-                    useTime = w_tt[2] + "秒";
-                }
-                let recordId = data.data.recordId;
-                let totalScore = data.data.totalScore;
-
-                log.d(`总分:${totalScore}, 用时${useTime}`);
-                log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, 超过了${data.data.overPercen}的人`);
-
-                resolve(totalScore);
-            } else {
-                reject(`交卷失败! ${data.code} Error ${data.msg}`);
-            }
-        });
-    });
-
-}
-
-/**
- * 更新错题集
- * @param {Iterable} failureList
- */
-function updateFailureList(failureList) {
-    request
-        .post(myUrl + "/sdbeacononline/updatefailurelist")
-        .send(failureList)
-        .then(res => log.d('错题集更新成功!'))
-        .catch(err => log.e(err));
-}
-
-/**
- * 获取正式的考试题目
- * POST http://xxjs.dtdjzx.gov.cn/quiz-api/game_info/getGameSubject
- * header(登录校验)
- * user_hash:若群众则为手机号;若党员则
- * system-type:web
- */
-function getSubjectInfoList() {
-    return new Promise((resolve, reject) => {
-        httpPost({
-            path: '/quiz-api/game_info/getGameSubject',
-        }, (statusCode, headers, data) => {
-            if (data.code == 200 && data.success) {
-                //缓存试题
-                if (debug) {
-                    let jString = JSON.stringify(data);
-                    fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
-                        if (err) {
-                            log.e(err);
-                        } else {
-                            log.d('试题缓存ok.');
-                        }
-                    });
-                }
-
-                log.d(`开始答题, 共计${data.data.totalSubject}题.\n`);
-                resolve(data.data);
-            } else {
-                // log.e(`${data.code} Error ${data.msg}`);
-                reject(`getSubjectInfoList: ${data.code} Error ${data.msg}`);
-            }
-        });
-    });
-}
-
 function queryAnswer(userId, subjectInfoList) {
     log.d('答案查询中...');
     return new Promise((resolve, reject) => {
@@ -178,8 +91,19 @@ function queryAnswer(userId, subjectInfoList) {
             .catch(err => {
                 log.e(err);
             })
-
     });
+}
+
+/**
+ * 更新错题集
+ * @param {Iterable} failureList
+ */
+function updateFailureList(failureList) {
+    request
+        .post(myUrl + "/sdbeacononline/updatefailurelist")
+        .send(failureList)
+        .then(res => log.d('错题集更新成功!'))
+        .catch(err => log.e(err));
 }
 
 /**
@@ -277,10 +201,128 @@ function handleResult(subject, queryResult) {
     });
 }
 
+/**
+ * 查询剩余答题次数
+ * @param userType
+ * @returns {Promise<any>}
+ */
+function getLeftChance(userType) {
+    let headers = Object.assign({}, mockHeaders);
+    headers['Referer'] = 'http://xxjs.dtdjzx.gov.cn/';
+    log.d(JSON.stringify(headers));
+    return new Promise((resolve, reject) => {
+        request
+            .get(`${baseUrl}/quiz-api/game_info/user_left_chance`)
+            .query({userType})
+            .set(headers)
+            .then(res => {
+                let {code, msg, success, data} = res.body;
+                if (code === 200 && success) {
+                    log.d(`您今天有${data}次答题机会.`)
+                    resolve(data);
+                } else {
+                    reject(msg);
+                }
+            })
+            .catch(err => log.e(err));
+    });
+}
+
+/**
+ * 获取正式的考试题目
+ * POST http://xxjs.dtdjzx.gov.cn/quiz-api/game_info/getGameSubject
+ * header(登录校验)
+ * user_hash:若群众则为手机号;若党员则
+ * system-type:web
+ * @returns {Promise<any>}
+ */
+function getSubjectInfoList() {
+    return new Promise((resolve, reject) => {
+        log.d(JSON.stringify(mockHeaders));
+        request
+            .post(`${baseUrl}/quiz-api/game_info/getGameSubject`)
+            .set(mockHeaders)
+            .then(res => {
+                let {code, msg, success, data} = res.body;
+                if (code === 200 && success) {
+                    //缓存试题
+                    if (debug) {
+                        let jString = JSON.stringify(data);
+                        fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
+                            if (err) {
+                                log.e(err);
+                            } else {
+                                log.d('试题缓存ok.');
+                            }
+                        });
+                    }
+
+                    log.d(`开始答题, 共计${data.totalSubject}题.\n`);
+                    resolve(data.data);
+                } else {
+                    reject(`getSubjectInfoList: ${code} Error ${msg}`);
+                }
+            })
+            .catch(err => log.e(err));
+    });
+}
+
+/**
+ * 交卷
+ * POST http://xxjs.dtdjzx.gov.cn/quiz-api/chapter_info/countScore
+ *
+ * 机器人校验
+ * 1. 记录点击[下一题按钮]的坐标
+ * 2. 记录重复X坐标的次数
+ *
+ * @param {答题数据} result
+ */
+function submit(result) {
+    return new Promise((resolve, reject) => {
+        log.d(JSON.stringify(mockHeaders));
+        log.d(JSON.stringify(result));
+        request
+            .post(`${baseUrl}/quiz-api/chapter_info/countScore`)
+            .set(mockHeaders)
+            .send(result)
+            .then(res => {
+                let {code, msg, success, data} = res.body;
+                if (code === 200 && success) {
+                    log.d(`交卷成功! ${JSON.stringify(data)}`);
+
+                    let {recordId, useTime, totalScore, totalRight, totalWrong, overPercen} = data;
+                    let w_tt = useTime.split(':');
+                    if (w_tt[0] !== '00') {
+                        useTime = w_tt[0] + "小时" + w_tt[1] + "分" + w_tt[2] + "秒";
+                    } else if (w_tt[1] !== '00') {
+                        useTime = w_tt[1] + "分" + w_tt[2] + "秒";
+                    } else {
+                        useTime = w_tt[2] + "秒";
+                    }
+                    log.d(`总分:${totalScore}, 用时${useTime}`);
+                    log.d(`正确: ${totalRight}, 错误: ${totalWrong}, 超过了${overPercen}的人`);
+
+                    resolve(totalScore);
+                } else {
+                    reject(`交卷失败! ${code} Error ${msg}`);
+                }
+            })
+            .catch(err => log.e(err));
+    });
+}
+
 async function main() {
     try {
         //登录
-        let hassh = await login(argv.i);
+        let {usetype, hassh, session} = await login(argv.i);
+        //更新请求头
+        mockHeaders['user_hash'] = hassh;
+        if (session)
+            mockHeaders['Cookie'] = session;
+
+        //当天剩余答题次数
+        let leftChance = await getLeftChance(usetype);
+        // if (leftChance === 0) return;
 
         //获取试题
         let subject = await getSubjectInfoList();

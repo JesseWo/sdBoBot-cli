@@ -32,7 +32,5 @@
     "readline-sync": "latest",
     "superagent": "^3.8.3",
     "yargs": "^11.0.0"
-  },
-  "debug": false,
-  "myUrl": "http://wooox.320.io:3110"
+  }
 }

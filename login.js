@@ -1,7 +1,6 @@
 'use strict'
 
-const {debug, myUrl} = require('./package');
-const { addHeader } = require('./httpRequst');
+const {debug, myUrl: MY_URL, loginBaseUrl: BASE_URL} = require('./config');
 const request = require('superagent');
 const log = require('./utils/logUtils');
 const readlineSync = require('readline-sync');
@@ -13,9 +12,7 @@ const os = require('os');
 const open = require("open");
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
-const BASE_URL = 'https://sso.dtdjzx.gov.cn';
 const HOST = 'sso.dtdjzx.gov.cn';
-const MY_URL = myUrl;
 
 const loginCacheFile = './db/objs.json';
 const cookieFile = './db/cookie.json';
@@ -35,10 +32,12 @@ function checkLogin() {
     }
     if (hassh && xSession) {
         log.d('检测到缓存的登录信息!');
-        //更新请求头
-        addHeader('user_hash', hassh);
-        addHeader('Cookie', xSession);
-        return hassh;
+        return {
+            usetype: "0",
+            hassh: hassh,
+            orgId: "0",
+            session: xSession
+        };
     } else {
         log.d('未检测到缓存的登录信息');
         return null;
@@ -78,7 +77,7 @@ function visitLoginPage() {
                 if (res.status === 200) {
                     const cookieArr = res.header['set-cookie']; //返回一个数组
                     log.d(`set-cookie: ${cookieArr}`);
-                    let { 'SSO-SID': sid } = cookieParser.parse(cookieArr[0]);
+                    let {'SSO-SID': sid} = cookieParser.parse(cookieArr[0]);
                     cookie_sid = `SSO-SID=${sid}`;
 
                     resolve();
@@ -96,7 +95,7 @@ function visitLoginPage() {
 async function collectLoginInfo() {
     try {
         //获取验证码图片
-        let { body: imageBuffer, type: contentType } = await getVcode();
+        let {body: imageBuffer, type: contentType} = await getVcode();
         //ocr识别
         let validateCode;
         if (vcodeOcrFailedTimes < 2) {
@@ -106,7 +105,7 @@ async function collectLoginInfo() {
         //读取用户名和密码
         let username, password;
         try {
-            let login = require('./db/login');
+            let login = require('./config').login;
             username = login.username;
             password = login.password;
         } catch (e) {
@@ -153,7 +152,7 @@ function getVcode() {
     return new Promise((resolve, reject) => {
         request
             .get(BASE_URL + "/sso/validateCodeServlet")
-            .query({ t: Math.random() * 10 })
+            .query({t: Math.random() * 10})
             .set({
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': UA,
@@ -256,8 +255,6 @@ async function onLoginSuccess() {
     try {
         //获取session
         let cookie_xsession = await getSession();
-        //更新请求头
-        addHeader('Cookie', cookie_xsession);
         //缓存cookie
         fs.writeFile(cookieFile, JSON.stringify({
             'X-SESSION': cookie_xsession,
@@ -284,7 +281,7 @@ async function onLoginSuccess() {
                 })
                 .catch(err => {
                     if (err.status === 302) {
-                        const { location } = err.response.header;
+                        const {location} = err.response.header;
                         log.d(`redirect to: ${location}`);
                         resolve(location);
                     } else {
@@ -294,22 +291,21 @@ async function onLoginSuccess() {
         });
         //解析重定向的url,获取hassh
         //http://xxjs.dtdjzx.gov.cn/index.html?h=qwertyuiop
-        let { query: { h } } = urlParser.parse(location, true);
+        let {query: {h}} = urlParser.parse(location, true);
         if (h) {
             log.d('登录成功!');
             //最终答题需要的登录信息
-            //更新请求头
-            addHeader('user_hash', h);
             //缓存登录信息
-            let objs = JSON.stringify({
+            let objs = {
                 usetype: "0",
                 hassh: h,
-                orgId: "0"
-            });
-            fs.writeFile(loginCacheFile, objs, (e) => {
+                orgId: "0",
+                session: cookie_xsession
+            };
+            fs.writeFile(loginCacheFile, JSON.stringify(objs), (e) => {
                 if (e) log.e(e);
             });
-            return h;
+            return objs;
         }
     } catch (e) {
         log.e(e);
@@ -329,7 +325,7 @@ function getSession() {
             .then(res => {
                 const cookieArr = res.header['set-cookie']; //返回一个数组
                 log.d(`set-cookie: ${cookieArr}`);
-                let { 'X-SESSION': xSession } = cookieParser.parse(cookieArr[0]);
+                let {'X-SESSION': xSession} = cookieParser.parse(cookieArr[0]);
                 resolve(`X-SESSION=${xSession}`);
             })
             .catch(err => log.e(err));
@@ -337,22 +333,26 @@ function getSession() {
 }
 
 async function main(identity) {
-    let hassh;
-    if (identity === "member") {
-        hassh = checkLogin();
-        if (!hassh) {
-            await visitLoginPage();
-            hassh = await startLogin();
-        }
-    } else if (identity === "people") {
+    let objs;
+    if (identity === "people") {
+        //群众
         let mobile = readlineSync.question('您的身份是[群众],请输入手机号开始答题: ').trim();
         while (!mobile.match(/^1[\d]{10}$/g)) {
             mobile = readlineSync.question('手机号格式错误,请重新输入:\n').trim();
         }
-        addHeader('user_hash', mobile);
-        hassh = mobile;
+        objs = {
+            usetype: "1",
+            hassh: mobile,
+        };
+    } else {
+        //党员
+        objs = checkLogin();
+        if (!objs) {
+            await visitLoginPage();
+            objs = await startLogin();
+        }
     }
-    return hassh;
+    return objs;
 }
 
 module.exports = main;
