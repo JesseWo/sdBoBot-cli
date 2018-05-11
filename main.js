@@ -3,7 +3,7 @@
 /**
  * 控制train_data输出
  */
-const debug = false;
+const debug = require('./package').debug;
 
 //解析命令行参数
 let argv = require('yargs')
