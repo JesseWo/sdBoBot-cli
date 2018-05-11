@@ -1,5 +1,6 @@
 'use strict'
 
+const {debug, myUrl} = require('./package');
 const { addHeader } = require('./httpRequst');
 const request = require('superagent');
 const log = require('./utils/logUtils');
@@ -14,7 +15,7 @@ const open = require("open");
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const BASE_URL = 'https://sso.dtdjzx.gov.cn';
 const HOST = 'sso.dtdjzx.gov.cn';
-const MY_URL = 'http://wooox.320.io:3110';
+const MY_URL = myUrl;
 
 const loginCacheFile = './db/objs.json';
 const cookieFile = './db/cookie.json';
