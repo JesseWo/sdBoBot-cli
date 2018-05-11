@@ -2,7 +2,7 @@
 一键 登录(验证码OCR识别) + 更新题库 + 获取试题 + 自动答题 + 交卷
 
 2018.05.11更新:
-1. 更新2017.12-2018.05所有题库
+1. 更新2017.12-2018.05所有题库
 2. 前后端分离,[Server端](https://github.com/JesseWo/sdBeaconOnlineBot-server)主要集成功能: 登录验证码OCR | 答案检索 | 错题集
 
 
@@ -26,7 +26,7 @@
 npm install
 ```
 
-```package.json``` 文件中的 ```myUrl``` 字段为server端url,可以自行配置
+```package.json``` 文件中的 ```myUrl``` 字段为server端url,可以自行配置
 
 ## 启动
 ```

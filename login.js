@@ -114,7 +114,7 @@ async function collectLoginInfo() {
         }
         //若读取失败则提示用户输入
         while (!username) {
-            username = readlineSync.question('请输入用户名:').trim();
+            username = readlineSync.question('请输入用户名(手机号):').trim();
         }
         while (!password) {
             password = readlineSync.question('请输入密码:').trim();
