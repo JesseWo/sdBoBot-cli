@@ -1,6 +1,6 @@
 'use strict'
 
-const {addHeader} = require('./httpRequst');
+const { addHeader } = require('./httpRequst');
 const request = require('superagent');
 const log = require('./utils/logUtils');
 const readlineSync = require('readline-sync');
@@ -77,7 +77,7 @@ function visitLoginPage() {
                 if (res.status === 200) {
                     const cookieArr = res.header['set-cookie']; //返回一个数组
                     log.d(`set-cookie: ${cookieArr}`);
-                    let {'SSO-SID': sid} = cookieParser.parse(cookieArr[0]);
+                    let { 'SSO-SID': sid } = cookieParser.parse(cookieArr[0]);
                     cookie_sid = `SSO-SID=${sid}`;
 
                     resolve();
@@ -95,7 +95,7 @@ function visitLoginPage() {
 async function collectLoginInfo() {
     try {
         //获取验证码图片
-        let {body: imageBuffer, type: contentType} = await getVcode();
+        let { body: imageBuffer, type: contentType } = await getVcode();
         //ocr识别
         let validateCode;
         if (vcodeOcrFailedTimes < 2) {
@@ -152,7 +152,7 @@ function getVcode() {
     return new Promise((resolve, reject) => {
         request
             .get(BASE_URL + "/sso/validateCodeServlet")
-            .query({t: Math.random() * 10})
+            .query({ t: Math.random() * 10 })
             .set({
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': UA,
@@ -283,7 +283,7 @@ async function onLoginSuccess() {
                 })
                 .catch(err => {
                     if (err.status === 302) {
-                        const {location} = err.response.header;
+                        const { location } = err.response.header;
                         log.d(`redirect to: ${location}`);
                         resolve(location);
                     } else {
@@ -293,7 +293,7 @@ async function onLoginSuccess() {
         });
         //解析重定向的url,获取hassh
         //http://xxjs.dtdjzx.gov.cn/index.html?h=qwertyuiop
-        let {query: {h}} = urlParser.parse(location, true);
+        let { query: { h } } = urlParser.parse(location, true);
         if (h) {
             log.d('登录成功!');
             //最终答题需要的登录信息
@@ -328,18 +328,28 @@ function getSession() {
             .then(res => {
                 const cookieArr = res.header['set-cookie']; //返回一个数组
                 log.d(`set-cookie: ${cookieArr}`);
-                let {'X-SESSION': xSession} = cookieParser.parse(cookieArr[0]);
+                let { 'X-SESSION': xSession } = cookieParser.parse(cookieArr[0]);
                 resolve(`X-SESSION=${xSession}`);
             })
             .catch(err => log.e(err));
     });
 }
 
-async function main() {
-    let hassh = checkLogin();
-    if (!hassh) {
-        await visitLoginPage();
-        hassh = await startLogin();
+async function main(identity) {
+    let hassh;
+    if (identity === "member") {
+        hassh = checkLogin();
+        if (!hassh) {
+            await visitLoginPage();
+            hassh = await startLogin();
+        }
+    } else if (identity === "people") {
+        let mobile = readlineSync.question('您的身份是[群众],请输入手机号开始答题: ').trim();
+        while (!mobile.match(/^1[\d]{10}$/g)) {
+            mobile = readlineSync.question('手机号格式错误,请重新输入:\n').trim();
+        }
+        addHeader('user_hash', mobile);
+        hassh = mobile;
     }
     return hassh;
 }

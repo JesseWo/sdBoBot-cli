@@ -1,20 +1,20 @@
+#!/usr/bin/env node
 'use strict';
 
-var fs = require('fs');
-var queryEngine = require('../queryEngine');
-var log = require('../utils/logUtils');
-var cookieParser = require('../utils/cookieParser');
+var argv = require('yargs')
+    .option('i', {
+        alias: 'identity',
+        demand: false,
+        default: 'member',
+        describe: 'your identity: member(party member) or people?.',
+        type: 'string'
+    })
+    .usage('Usage: beacon [options]')//用法格式
+    .example('beacon -i member', 'Your identity is party member.')
+    .help('h')
+    .alias('h', 'help')
+    .epilog('Jessewo | copyright 2018')//出现在帮助信息的结尾
+    .argv;
 
-// const trainDataPath = 'train_data/subjectInfoList-20180415_18-36-28.json';
-const trainDataPath = 'train_data/failureList.json';
-// const trainDataPath = 'analytics/subjectInfoList.json';
-
-let questionBank = JSON.parse(fs.readFileSync('db/questionBank.json', 'utf-8'));
-let subjectInfo = JSON.parse(fs.readFileSync(trainDataPath, 'utf-8'));
-let answerList = queryEngine.query(questionBank.data.subjectInfoList, subjectInfo.data.subjectInfoList);
-log.d(JSON.stringify(answerList));
-
-
-
-
+console.log(argv.i);
 

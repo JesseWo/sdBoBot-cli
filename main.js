@@ -1,8 +1,25 @@
+#!/usr/bin/env node
 'use strict';
 /**
  * 控制train_data输出
  */
 const debug = false;
+
+//解析命令行参数
+let argv = require('yargs')
+    .option('i', {
+        alias: 'identity',
+        demand: false,
+        default: 'member',
+        describe: 'your identity: member(party member) or people?.',
+        type: 'string'
+    })
+    .usage('Usage: beacon [options]')//用法格式
+    .example('beacon -i member', 'Your identity is party member.')
+    .help('h')
+    .alias('h', 'help')
+    .epilog('Jessewo | copyright 2018')//出现在帮助信息的结尾
+    .argv;
 
 const {httpGet, httpPost} = require('./httpRequst');
 const queryEngine = require('./queryEngine');
@@ -268,38 +285,37 @@ function isQuestionBankValid(qbData) {
     return new Date().getMonth() + 1 === m;
 }
 
-function main() {
-    login()
-        .then(hassh => {
-            //题库有效性校验
-            let qbData;
-            try {
-                qbData = require('./db/questionBank.json');
-            } catch (error) {
-                log.e(error);
-            }
-            if (qbData) {
-                log.d('从缓存读取题库...');
-                if (isQuestionBankValid(qbData)) {
-                    log.d('检测题库有效.');
-                    getSubjectInfoList(qbData.data.subjectInfoList)
-                        .then(preSubmit)
-                        .then(submit)
-                        .catch(errorMsg => {
-                            log.e(errorMsg);
-                        });
-                    return;
-                }
-            }
-            updateChapterId(hassh) //更新题库id
-                .then(getQuestionBank) //获取题库
-                .then(getSubjectInfoList) //获取试题
-                .then(preSubmit) //预交卷
-                .then(submit) //交卷
+async function main() {
+    let hassh = await login(argv.i);
+    //题库有效性校验
+    let qbData;
+    try {
+        qbData = require('./db/questionBank.json');
+    } catch (error) {
+        log.e(error);
+    }
+    if (qbData) {
+        log.d('从缓存读取题库...');
+        if (isQuestionBankValid(qbData)) {
+            log.d('检测题库有效.');
+            getSubjectInfoList(qbData.data.subjectInfoList)
+                .then(preSubmit)
+                .then(submit)
                 .catch(errorMsg => {
                     log.e(errorMsg);
                 });
+            return;
+        }
+    }
+    updateChapterId(hassh) //更新题库id
+        .then(getQuestionBank) //获取题库
+        .then(getSubjectInfoList) //获取试题
+        .then(preSubmit) //预交卷
+        .then(submit) //交卷
+        .catch(errorMsg => {
+            log.e(errorMsg);
         });
+
 }
 
 if (require.main === module)

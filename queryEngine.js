@@ -9,9 +9,9 @@ let readlineSync = require('readline-sync');
 let failureMap = new Map();
 
 /**
- * 
- * @param {题库} questionBank 
- * @param {试题} subjectInfoList 
+ *
+ * @param {题库} questionBank
+ * @param {试题} subjectInfoList
  */
 function query(questionBank, subjectInfoList) {
     let answerList = [];
@@ -19,7 +19,7 @@ function query(questionBank, subjectInfoList) {
     //遍历试题
     for (let i = 0; i < subjectInfoList.length; i++) {
         const subjectInfo = subjectInfoList[i];
-        const { subjectTitle, subjectType, optionInfoList } = subjectInfo;
+        const {subjectTitle, subjectType, optionInfoList} = subjectInfo;
 
         log.i(`${i + 1}.[${subjectType === '0' ? '单选' : '多选'}] ${subjectTitle}`);
 
@@ -105,32 +105,36 @@ function query(questionBank, subjectInfoList) {
     //将自动查询失败的问题 显示给用户,并手动输入答案
     if (failureMap.size > 0) {
         //汇总记录查询失败的问题
-        const failureCollector = require('./train_data/failureList.json');
-        let collectorList = failureCollector.data.subjectInfoList;
-        let newList = [];
-        failureMap.forEach((value, key, map) => {
-            //去重
-            let item = value;
-            let repeat = false;
-            for (const collectorItem of collectorList) {
-                if (item.id === collectorItem.id) {
-                    repeat = true;
-                    break;
+        try {
+            let failureCollector = require('./train_data/failureList.json');
+            let collectorList = failureCollector.data.subjectInfoList;
+            let newList = [];
+            failureMap.forEach((value, key, map) => {
+                //去重
+                let item = value;
+                let repeat = false;
+                for (const collectorItem of collectorList) {
+                    if (item.id === collectorItem.id) {
+                        repeat = true;
+                        break;
+                    }
                 }
-            }
-            if (!repeat) {
-                newList.push(item);
-            }
-        });
-        if (newList.length > 0) {
-            failureCollector.data.subjectInfoList = collectorList.concat(newList);
-            fs.writeFile('./train_data/failureList.json', JSON.stringify(failureCollector), (err) => {
-                if (err) {
-                    log.e(err);
-                } else {
-                    log.d('更新错题集.');
+                if (!repeat) {
+                    newList.push(item);
                 }
             });
+            if (newList.length > 0) {
+                failureCollector.data.subjectInfoList = collectorList.concat(newList);
+                fs.writeFile('./train_data/failureList.json', JSON.stringify(failureCollector), (err) => {
+                    if (err) {
+                        log.e(err);
+                    } else {
+                        log.d('更新错题集.');
+                    }
+                });
+            }
+        } catch (e) {
+            //ignore
         }
 
         log.e(`有${failureMap.size}个问题查询失败!\n`)
@@ -150,7 +154,7 @@ function query(questionBank, subjectInfoList) {
             //     hideEchoBack: true // The typed text on screen is hidden by `*` (default).
             // });
             while ((subjectType === '0' && !inputStr.match(/^[A-D]{1}$/g))
-                || (subjectType === '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
+            || (subjectType === '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
                 inputStr = readlineSync.question('输入格式错误, 请重新输入:').trim().toUpperCase();
             }
             let correctedOpts = inputStr.match(/./g).join(',');
