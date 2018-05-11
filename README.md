@@ -20,10 +20,6 @@
 ```
 npm install
 ```
-测试
-```
-npm test
-```
 
 
 ## 启动
@@ -32,8 +28,8 @@ npm start
 ```
 
 ## Project目录说明
+* ./db/questionBank.json 是2017.12-2018.05所有题库
 * ./analytics 目录下有各个接口返回的json数据和官方js文件;
-* ./train_data 目录下缓存每次拉取到的试题,方便后续测试;
 
 
 ## TODO 

@@ -3,7 +3,7 @@
 /**
  * 控制train_data输出
  */
-const debug = require('./package').debug;
+const {debug, myUrl} = require('./package');
 
 //解析命令行参数
 let argv = require('yargs')
@@ -21,8 +21,8 @@ let argv = require('yargs')
     .epilog('Jessewo | copyright 2018')//出现在帮助信息的结尾
     .argv;
 
-const {httpGet, httpPost} = require('./httpRequst');
-const queryEngine = require('./queryEngine');
+const request = require('superagent');
+const {httpPost} = require('./httpRequst');
 const fs = require('fs');
 const log = require('./utils/logUtils');
 const dateFormat = require('./utils/dateUtils');
@@ -33,6 +33,7 @@ const login = require('./login');
 //控制台键盘输入读取
 const readlineSync = require('readline-sync');
 
+let failureList;
 
 /**
  * mock 点击数据
@@ -82,40 +83,38 @@ function mockHumanBehaviors(totalSubject) {
  * @param {答题数据} result
  */
 function submit(result) {
-    let jString = JSON.stringify(result);
-    log.d(jString);
-    httpPost({
-        path: '/quiz-api/chapter_info/countScore',
-        body: jString
-    }, (statusCode, headers, data) => {
-        if (data.code == 200 && data.success) {
-            log.d(`交卷成功! ${JSON.stringify(data)}`);
+    return new Promise((resolve, reject) => {
+        let jString = JSON.stringify(result);
+        log.d(jString);
+        httpPost({
+            path: '/quiz-api/chapter_info/countScore',
+            body: jString
+        }, (statusCode, headers, data) => {
+            if (data.code == 200 && data.success) {
+                log.d(`交卷成功! ${JSON.stringify(data)}`);
 
-            var w_tt = data.data.useTime.split(':');
-            var useTime;
-            if (w_tt[0] !== '00') {
-                useTime = w_tt[0] + "小时" + w_tt[1] + "分" + w_tt[2] + "秒";
-            } else if (w_tt[1] !== '00') {
-                useTime = w_tt[1] + "分" + w_tt[2] + "秒";
+                let w_tt = data.data.useTime.split(':');
+                let useTime;
+                if (w_tt[0] !== '00') {
+                    useTime = w_tt[0] + "小时" + w_tt[1] + "分" + w_tt[2] + "秒";
+                } else if (w_tt[1] !== '00') {
+                    useTime = w_tt[1] + "分" + w_tt[2] + "秒";
+                } else {
+                    useTime = w_tt[2] + "秒";
+                }
+                let recordId = data.data.recordId;
+                let totalScore = data.data.totalScore;
+
+                log.d(`总分:${totalScore}, 用时${useTime}`);
+                log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, 超过了${data.data.overPercen}的人`);
+
+                resolve(totalScore);
             } else {
-                useTime = w_tt[2] + "秒";
+                reject(`交卷失败! ${data.code} Error ${data.msg}`);
             }
-            let recordId = data.data.recordId;
-            let totalScore = data.data.totalScore;
-
-            //满分则上传更新题库
-            let arr = queryEngine.getFailureList();
-            if (totalScore == 100 && arr.length > 0) {
-                updateFailureList(arr);
-            }
-
-            log.d(`总分:${totalScore}, 用时${useTime}`);
-            log.d(`正确: ${data.data.totalRight}, 错误: ${data.data.totalWrong}, 超过了${data.data.overPercen}的人`);
-
-        } else {
-            log.e(`交卷失败! ${data.code} Error ${data.msg}`);
-        }
+        });
     });
+
 }
 
 /**
@@ -123,81 +122,11 @@ function submit(result) {
  * @param {Iterable} failureList
  */
 function updateFailureList(failureList) {
-    let jString = JSON.stringify(failureList);
-    httpPost({
-        baseUrl: 'http://wooox.320.io:3110',
-        path: '/sdbeacononline/updatefailurelist',
-        body: jString
-    }, (statusCode, headers, data) => {
-        if (statusCode == 200) {
-            log.e(`错题集更新成功!`);
-        } else {
-            log.e(`错题集更新失败!`);
-        }
-    });
-}
-
-function updateChapterId(hassh) {
-    return new Promise((onSuccess, onFailure) => {
-        httpGet({
-            baseUrl: 'http://wooox.320.io:3110',
-            path: '/sdbeacononline/getchapterid',
-            query: {userId: hassh},
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        }, (statusCode, headers, data) => {
-            let chapterId = data.chapterId;
-            if (chapterId) {
-                log.d(`更新chapterId: ${chapterId}`);
-                onSuccess(chapterId);
-            } else {
-                onFailure('更新chapterId失败!');
-            }
-        });
-    });
-}
-
-/**
- * 获取试题库(答案)
- * GET http://xxjs.dtdjzx.gov.cn/quiz-api/subject_info/list?chapterId=7j0d8qp4r2g28ogjt5hq0cbhne
- *
- * 三月题库: 7j0d8qp4r2g28ogjt5hq0cbhne
- * 四月题库: qbqkfcn2fuihtqtnvo5t8e3mri
- */
-function getQuestionBank(chapterId) {
-    return new Promise((onSuccess, onFailure) => {
-        httpGet({
-            path: '/quiz-api/subject_info/list',
-            query: {
-                'chapterId': chapterId
-            }
-        }, (statusCode, headers, data) => {
-            if (data.code == 200 && data.success) {
-                if (!isQuestionBankValid(data)) {
-                    log.e('题库已过期!');
-                    return;
-                }
-                log.d(`获取 [${data.data.chapterTitle}] 题库, 共计${data.data.totalSubject}题.`);
-                //缓存题库
-                let jString = JSON.stringify(data);
-                fs.writeFile(`db/questionBank.json`, jString, (err) => {
-                    if (err) {
-                        log.e(err);
-                    } else {
-                        log.d('题库缓存ok.');
-                    }
-                });
-
-                const subjectInfoList = data.data.subjectInfoList;
-
-                onSuccess(subjectInfoList);
-            } else {
-                // log.e(`${data.code} Error ${data.msg}`);
-                onFailure(`getQuestionBank: ${data.code} Error ${data.msg}`);
-            }
-        });
-    });
+    request
+        .post(myUrl + "/sdbeacononline/updatefailurelist")
+        .send(failureList)
+        .then(res => log.d('错题集更新成功!'))
+        .catch(err => log.e(err));
 }
 
 /**
@@ -207,8 +136,8 @@ function getQuestionBank(chapterId) {
  * user_hash:若群众则为手机号;若党员则
  * system-type:web
  */
-function getSubjectInfoList(questionBank) {
-    return new Promise((onSuccess, onFailure) => {
+function getSubjectInfoList() {
+    return new Promise((resolve, reject) => {
         httpPost({
             path: '/quiz-api/game_info/getGameSubject',
         }, (statusCode, headers, data) => {
@@ -225,35 +154,105 @@ function getSubjectInfoList(questionBank) {
                     });
                 }
 
-                const {recordId, roundOnlyId, orderId, totalSubject, subjectInfoList} = data.data;
-                log.d(`开始答题, 共计${totalSubject}题.\n`);
-
-                //查询答案
-                let answerList = queryEngine.query(questionBank, subjectInfoList);
-                //模拟点击数据
-                let {sameNum, clickX, clickY} = mockHumanBehaviors(totalSubject);
-                //构建交卷body
-                let result = {
-                    recordId: recordId,
-                    roundOnlyId: roundOnlyId,
-                    orderId: orderId,
-                    subjectInfoList: answerList,
-                    sameNum: sameNum,
-                    clickX: clickX,
-                    clickY: clickY
-                };
-                onSuccess(result);
+                log.d(`开始答题, 共计${data.data.totalSubject}题.\n`);
+                resolve(data.data);
             } else {
                 // log.e(`${data.code} Error ${data.msg}`);
-                onFailure(`getSubjectInfoList: ${data.code} Error ${data.msg}`);
+                reject(`getSubjectInfoList: ${data.code} Error ${data.msg}`);
             }
         });
     });
 }
 
-function preSubmit(result) {
-    return new Promise((onSuccess, onFailure) => {
-        let answer = readlineSync.question('是否交卷? (Y/N)').trim().toUpperCase();
+function queryAnswer(userId, subjectInfoList) {
+    log.d('答案查询中...');
+    return new Promise((resolve, reject) => {
+        request
+            .post(myUrl + "/sdbeacononline/queryanswer")
+            .send({userId, subjectInfoList})
+            .then(res => {
+                resolve(res.body.data);
+            })
+            .catch(err => {
+                log.e(err);
+            })
+
+    });
+}
+
+/**
+ * 构建交卷的body
+ * @param subject
+ * @param queryResult
+ * @returns {Promise<any>}
+ */
+function handleResult(subject, queryResult) {
+    return new Promise((resolve, reject) => {
+        const {recordId, roundOnlyId, orderId, totalSubject} = subject;
+        let {answerList, failureMap} = queryResult;
+
+        //对于查询失败的问题抛给用户
+        if (failureMap) {
+            log.e(`有${Object.values(failureMap).length}个问题查询失败!\n`);
+
+            for (let key in failureMap) {
+                let index = key;
+                let item = failureMap[key];
+                const subjectTitle = item.subjectTitle;
+                const subjectType = item.subjectType;
+                const optionInfoList = item.optionInfoList;
+
+                log.i(`${index + 1}.[${subjectType === '0' ? '单选' : '多选'}] ${subjectTitle}`);
+                optionInfoList.forEach(opt => log.i(`${opt.optionType}.${opt.optionTitle}`));
+
+                let inputStr = readlineSync.question('请输入答案(示例: 若单选则输入 A ;若多选则输入 ABC): ').trim().toUpperCase();
+                // // Handle the secret text (e.g. password).
+                // var favFood = readlineSync.question('What is your favorite food? ', {
+                //     hideEchoBack: true // The typed text on screen is hidden by `*` (default).
+                // });
+                while ((subjectType === '0' && !inputStr.match(/^[A-D]{1}$/g))
+                || (subjectType === '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
+                    inputStr = readlineSync.question('输入格式错误, 请重新输入:').trim().toUpperCase();
+                }
+                let correctedOpts = inputStr.match(/./g).join(',');
+                log.w(`您输入的是: ${correctedOpts}\n`);
+                //将输入的答案添加到错题集里
+                item.answer = correctedOpts;
+                for (let i = 0; i < inputStr.length; i++) {
+                    let c = inputStr.charAt(i);
+                    optionInfoList.forEach(opt => {
+                        if (opt.optionType.toUpperCase() == c) {
+                            opt.isRight = '1';
+                        } else {
+                            opt.isRight = opt.isRight || '0';
+                        }
+                    });
+                }
+
+                //构建手动输入的结果
+                let answer = {};
+                answer.id = item.id;
+                answer.answer = correctedOpts;
+                //按照原来的顺序插入元素
+                answerList.splice(index, 0, answer);
+            }
+            failureList = Object.values(failureMap);
+        }
+
+        //模拟点击数据
+        let {sameNum, clickX, clickY} = mockHumanBehaviors(totalSubject);
+        //构建交卷body
+        let result = {
+            recordId,
+            roundOnlyId,
+            orderId,
+            subjectInfoList: answerList,
+            sameNum,
+            clickX,
+            clickY
+        };
+
+        let answer = readlineSync.question('答题完成,是否交卷? (Y/N)').trim().toUpperCase();
         if (answer === 'Y') {
             let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
             while (!delay.match(/^[\d]+$/g) || delay < 15) {
@@ -265,57 +264,42 @@ function preSubmit(result) {
                 log.d(`${delay--}秒后交卷...`);
                 if (delay <= 0) {
                     clearInterval(intervalId);
-                    onSuccess(result)
+                    resolve(result)
                 }
             }, 1000);
         } else if (answer === 'N') {
             log.d('暂不交卷...');
         } else {
-            // log.e('输入错误, 暂不交卷...');
-            onFailure('输入错误, 暂不交卷...');
+            reject('输入错误, 暂不交卷...');
         }
     });
 }
 
-function isQuestionBankValid(qbData) {
-    let chapterTitle = qbData.data.chapterTitle;
-    let startIndex = chapterTitle.indexOf('年') + 1;
-    let endIndex = chapterTitle.indexOf('月');
-    let m = parseInt(chapterTitle.substring(startIndex, endIndex));
-    return new Date().getMonth() + 1 === m;
-}
-
 async function main() {
-    let hassh = await login(argv.i);
-    //题库有效性校验
-    let qbData;
     try {
-        qbData = require('./db/questionBank.json');
-    } catch (error) {
-        log.e(error);
-    }
-    if (qbData) {
-        log.d('从缓存读取题库...');
-        if (isQuestionBankValid(qbData)) {
-            log.d('检测题库有效.');
-            getSubjectInfoList(qbData.data.subjectInfoList)
-                .then(preSubmit)
-                .then(submit)
-                .catch(errorMsg => {
-                    log.e(errorMsg);
-                });
-            return;
-        }
-    }
-    updateChapterId(hassh) //更新题库id
-        .then(getQuestionBank) //获取题库
-        .then(getSubjectInfoList) //获取试题
-        .then(preSubmit) //预交卷
-        .then(submit) //交卷
-        .catch(errorMsg => {
-            log.e(errorMsg);
-        });
+        //登录
+        let hassh = await login(argv.i);
 
+        //获取试题
+        let subject = await getSubjectInfoList();
+
+        //查询答案
+        let queryResult = await queryAnswer(hassh, subject.subjectInfoList);
+
+        //请求交卷,交卷延时
+        let result = await handleResult(subject, queryResult);
+
+        //交卷
+        let score = await submit(result);
+
+        //满分则上传更新题库
+        if (score === 100 && failureList) {
+            updateFailureList(failureList);
+        }
+
+    } catch (e) {
+        log.e(e);
+    }
 }
 
 if (require.main === module)
