@@ -102,7 +102,7 @@ function updateFailureList(failureList) {
     request
         .post(myUrl + "/sdbeacononline/updatefailurelist")
         .send(failureList)
-        .then(res => log.d('错题集更新成功!'))
+        .then(res => log.d('错题上传成功!'))
         .catch(err => log.e(err));
 }
 
@@ -386,7 +386,7 @@ async function main() {
         let score = await submit(result);
 
         //满分则上传更新题库
-        if (score === 100 && failureList) {
+        if (score === 100 && failureList && failureList.length > 0) {
             updateFailureList(failureList);
         }
 

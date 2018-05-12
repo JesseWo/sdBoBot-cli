@@ -1,7 +1,7 @@
 'use strict'
 
 const {debug, myUrl: MY_URL, loginBaseUrl: BASE_URL} = require('./config');
-const request = require('superagent');
+const agent = require('superagent').agent();//auto manage cookie
 const log = require('./utils/logUtils');
 const readlineSync = require('readline-sync');
 const urlParser = require("url");
@@ -14,8 +14,8 @@ const open = require("open");
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const HOST = 'sso.dtdjzx.gov.cn';
 
-const loginCacheFile = './db/objs.json';
-const cookieFile = './db/cookie.json';
+const objsCacheFile = './cache/objs.json';
+const loginCacheFile = './cache/login.json';
 
 let cookie_sid;
 
@@ -25,8 +25,8 @@ let vcodeOcrFailedTimes = 0;
 function checkLogin() {
     let hassh, xSession;
     try {
-        hassh = require(loginCacheFile).hassh;
-        xSession = require(cookieFile)['X-SESSION'];
+        hassh = require(objsCacheFile).hassh;
+        xSession = require(loginCacheFile)['X-SESSION'];
     } catch (error) {
         //ignore
     }
@@ -47,10 +47,10 @@ function checkLogin() {
 async function startLogin() {
     try {
         let info = await collectLoginInfo();
-        let success = await submit(info);
-        if (success) {
+        let session = await submit(info);
+        if (session) {
             //登录成功
-            return await onLoginSuccess();
+            return await onLoginSuccess(info, session);
         } else {
             //登录失败
             log.e('用户名或密码错误!请重新输入..');
@@ -67,7 +67,7 @@ async function startLogin() {
  */
 function visitLoginPage() {
     return new Promise((resolve, reject) => {
-        request
+        agent
             .get(BASE_URL + '/sso/login')
             .set({
                 'Upgrade-Insecure-Requests': 1,
@@ -102,14 +102,21 @@ async function collectLoginInfo() {
             validateCode = await vcodeOcr(imageBuffer);
             log.d(`vcode ocr result: ${validateCode}`);
         }
-        //读取用户名和密码
+        //从缓存读取用户名和密码
         let username, password;
         try {
-            let login = require('./config').login;
+            let login = require(loginCacheFile);
             username = login.username;
             password = login.password;
         } catch (e) {
             //ignore
+        }
+        if (username && password) {
+            let useCache = readlineSync.question(`检测到上次登录账号:${username}, 若继续登录请直接回车,若更换账号请输入 N 后回车: `).trim();
+            if (/^[N]$/i.test(useCache)) {
+                username = null;
+                password = null;
+            }
         }
         //若读取失败则提示用户输入
         while (!username) {
@@ -150,7 +157,7 @@ async function collectLoginInfo() {
 
 function getVcode() {
     return new Promise((resolve, reject) => {
-        request
+        agent
             .get(BASE_URL + "/sso/validateCodeServlet")
             .query({t: Math.random() * 10})
             .set({
@@ -175,7 +182,7 @@ function getVcode() {
 
 function vcodeOcr(buffer) {
     return new Promise((resolve, reject) => {
-        request
+        agent
             .post(`${MY_URL}/sdbeacononline/vcodeocr`)
             .attach('file', buffer, "vcode")//必须加上文件名
             .then(res => {
@@ -222,9 +229,9 @@ function openImage(imagePath) {
  */
 function submit(loginInfo) {
     return new Promise((resolve, reject) => {
-        request
+        agent
             .post(BASE_URL + "/sso/login")
-            .redirects(0)//禁止自动重定向
+            .redirects(3)//重定向三次后拿到sessionId
             .set({
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': UA,
@@ -234,11 +241,15 @@ function submit(loginInfo) {
             })
             .type('form')
             .send(loginInfo)
+            .then(res => {
+                resolve('');//登录失败
+            })
             .catch(err => {
                 if (err.status === 302) {
-                    let location = err.response.header['location'];
-                    log.d(`redirect to: ${location}`);
-                    resolve(location !== 'https://sso.dtdjzx.gov.cn/sso/login?error');
+                    let cookieArr = err.response.header['set-cookie'];
+                    log.d(`set-cookie: ${cookieArr}`);
+                    let {'X-SESSION': xSession} = cookieParser.parse(cookieArr[0]);
+                    resolve(xSession ? `X-SESSION=${xSession}` : '');//根据是否拿到session判断登录成功与否
                 } else {
                     reject(`status: ${err.status}, no redirect!`);
                 }
@@ -251,12 +262,12 @@ function submit(loginInfo) {
  * GET https://sso.dtdjzx.gov.cn/sso/oauth/authorize?client_id=party-build-knowledge&redirect_uri=http://xxjs.dtdjzx.gov.cn/quiz-api/user/sso_callback%3fc_type=code&response_type=code
  * @returns {Promise<void>}
  */
-async function onLoginSuccess() {
+async function onLoginSuccess({username, password}, cookie_xsession) {
     try {
-        //获取session
-        let cookie_xsession = await getSession();
-        //缓存cookie
-        fs.writeFile(cookieFile, JSON.stringify({
+        //登录成功则缓存登录信息
+        fs.writeFile(loginCacheFile, JSON.stringify({
+            username,
+            password,
             'X-SESSION': cookie_xsession,
             'SSO-SID': cookie_sid
         }), (e) => {
@@ -264,7 +275,7 @@ async function onLoginSuccess() {
         });
         //获取objs
         let location = await new Promise((resolve, reject) => {
-            request
+            agent
                 .get(BASE_URL + '/sso/oauth/authorize')
                 .redirects(1)//重定向一次
                 .set({
@@ -302,7 +313,7 @@ async function onLoginSuccess() {
                 orgId: "0",
                 session: cookie_xsession
             };
-            fs.writeFile(loginCacheFile, JSON.stringify(objs), (e) => {
+            fs.writeFile(objsCacheFile, JSON.stringify(objs), (e) => {
                 if (e) log.e(e);
             });
             return objs;
@@ -310,26 +321,6 @@ async function onLoginSuccess() {
     } catch (e) {
         log.e(e);
     }
-}
-
-function getSession() {
-    return new Promise((resolve, reject) => {
-        request
-            .get('https://www.dtdjzx.gov.cn/member/')
-            .set({
-                'Host': 'www.dtdjzx.gov.cn',
-                'Referer': 'https://sso.dtdjzx.gov.cn/sso/login',
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': UA
-            })
-            .then(res => {
-                const cookieArr = res.header['set-cookie']; //返回一个数组
-                log.d(`set-cookie: ${cookieArr}`);
-                let {'X-SESSION': xSession} = cookieParser.parse(cookieArr[0]);
-                resolve(`X-SESSION=${xSession}`);
-            })
-            .catch(err => log.e(err));
-    });
 }
 
 async function main(identity) {

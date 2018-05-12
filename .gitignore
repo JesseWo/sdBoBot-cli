@@ -4,5 +4,4 @@
 node_modules/
 package-lock.json
 images/vcode.jpg
-db/cookie.json
-db/objs.json
+cache
