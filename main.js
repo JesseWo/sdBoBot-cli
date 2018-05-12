@@ -11,14 +11,15 @@ let argv = require('yargs')
         alias: 'identity',
         demand: false,
         default: 'member',
-        describe: 'your identity: member(party member) or people?.',
+        describe: '你的身份: member 或 people',
         type: 'string'
     })
-    .usage('Usage: beacon [options]')//用法格式
-    .example('beacon -i member', 'Your identity is party member.')
+    .usage('Usage: sdBobot [options]')//用法格式
+    .example('sdBobot -i member', 'Your identity is party member.')
     .help('h')
     .alias('h', 'help')
-    .epilog('Jessewo | copyright 2018')//出现在帮助信息的结尾
+    .alias('v', 'version')
+    .epilog('Create by Jessewo | Copyright 2018')//出现在帮助信息的结尾
     .argv;
 
 const request = require('superagent');
