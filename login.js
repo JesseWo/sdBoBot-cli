@@ -13,6 +13,8 @@ const open = require("open");
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const HOST = 'sso.dtdjzx.gov.cn';
+//手机号正则
+const MOBILE_REG = /^1[\d]{10}$/;
 
 const appCacheDir = `${os.tmpdir()}/sdBobot`;
 if (!fs.existsSync(appCacheDir)) {
@@ -27,25 +29,29 @@ let cookie_sid;
 let vcodeOcrFailedTimes = 0;
 
 function checkLogin() {
-    let hassh, xSession;
+    let hassh, xSession, username;
     try {
         hassh = require(objsCacheFile).hassh;
-        xSession = require(loginCacheFile)['X-SESSION'];
+        let loginInfo = require(loginCacheFile);
+        xSession = loginInfo['X-SESSION'];
+        username = loginInfo.username;
     } catch (error) {
         //ignore
     }
     if (hassh && xSession) {
         log.d('检测到缓存的登录信息!');
-        return {
-            usetype: "0",
-            hassh: hassh,
-            orgId: "0",
-            session: xSession
-        };
-    } else {
-        log.d('未检测到缓存的登录信息');
-        return null;
+        let useCache = readlineSync.question(`检测到上次登录账号:${username}, 若继续登录请直接回车,若更换账号请输入 N 后回车: `).trim();
+        if (!/^[N]$/i.test(useCache)) {
+            return {
+                usetype: "0",
+                hassh: hassh,
+                orgId: "0",
+                session: xSession
+            };
+        }
     }
+    log.d('未检测到缓存的登录信息');
+    return null;
 }
 
 async function startLogin() {
@@ -54,6 +60,7 @@ async function startLogin() {
         let session = await submit(info);
         if (session) {
             //登录成功
+            log.e('登录成功');
             return await onLoginSuccess(info, session);
         } else {
             //登录失败
@@ -106,24 +113,9 @@ async function collectLoginInfo() {
             validateCode = await vcodeOcr(imageBuffer);
             log.d(`vcode ocr result: ${validateCode}`);
         }
-        //从缓存读取用户名和密码
+        //提示用户输入用户名和密码
         let username, password;
-        try {
-            let login = require(loginCacheFile);
-            username = login.username;
-            password = login.password;
-        } catch (e) {
-            //ignore
-        }
-        if (username && password) {
-            let useCache = readlineSync.question(`检测到上次登录账号:${username}, 若继续登录请直接回车,若更换账号请输入 N 后回车: `).trim();
-            if (/^[N]$/i.test(useCache)) {
-                username = null;
-                password = null;
-            }
-        }
-        //若读取失败则提示用户输入
-        while (!username) {
+        while (!MOBILE_REG.test(username)) {
             username = readlineSync.question('请输入用户名(手机号):').trim();
         }
         while (!password) {
@@ -332,7 +324,7 @@ async function main(identity) {
     if (identity === "people") {
         //群众
         let mobile = readlineSync.question('您的身份是[群众],请输入手机号开始答题: ').trim();
-        while (!mobile.match(/^1[\d]{10}$/g)) {
+        while (!mobile.match(MOBILE_REG)) {
             mobile = readlineSync.question('手机号格式错误,请重新输入:\n').trim();
         }
         objs = {
