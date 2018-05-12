@@ -210,10 +210,12 @@ function getLeftChance(userType) {
     let headers = Object.assign({}, mockHeaders);
     headers['Referer'] = 'http://xxjs.dtdjzx.gov.cn/';
     log.d(JSON.stringify(headers));
+    let q = {userType};
+    if(userType === 0) q.orgId = 0;
     return new Promise((resolve, reject) => {
         request
             .get(`${baseUrl}/quiz-api/game_info/user_left_chance`)
-            .query({userType})
+            .query(q)
             .set(headers)
             .then(res => {
                 let {code, msg, success, data} = res.body;
@@ -258,7 +260,7 @@ function getSubjectInfoList() {
                     }
 
                     log.d(`开始答题, 共计${data.totalSubject}题.\n`);
-                    resolve(data.data);
+                    resolve(data);
                 } else {
                     reject(`getSubjectInfoList: ${code} Error ${msg}`);
                 }
