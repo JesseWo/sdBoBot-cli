@@ -14,6 +14,9 @@ const open = require("open");
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36';
 const HOST = 'sso.dtdjzx.gov.cn';
 
+if (!fs.existsSync('./cache')) {
+    fs.mkdirSync('./cache')
+}
 const objsCacheFile = './cache/objs.json';
 const loginCacheFile = './cache/login.json';
 
