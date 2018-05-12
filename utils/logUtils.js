@@ -1,6 +1,6 @@
 'use strict'
 
-var colors = require('colors');
+let colors = require('colors');
 colors.setTheme({
     silly: 'rainbow',
     input: 'grey',
@@ -14,11 +14,13 @@ colors.setTheme({
     error: 'red'
 });
 
-const dateFormat = require('./dateUtils')
+const dateFormat = require('./dateUtils');
+const {debug} = require('../config');
 
 let log = {
     d: info => {
-        console.log(`${currentTime()} ${info}`.debug);
+        if (debug)
+            console.log(`${currentTime()} ${info}`.debug);
     },
     i: info => {
         console.log(info);
