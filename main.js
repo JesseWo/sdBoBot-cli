@@ -32,6 +32,8 @@ const login = require('./login');
 //控制台键盘输入读取
 const readlineSync = require('readline-sync');
 
+const DIVIDER = '----------------------------------------------------------------';
+
 let failureList;
 
 /**
@@ -296,8 +298,8 @@ function getSubjectInfoList() {
  * 机器人校验
  * 1. 记录点击[下一题按钮]的坐标
  * 2. 记录重复X坐标的次数
- *
- * @param {答题数据} result
+ * @param result
+ * @returns {Promise<any>}
  */
 function submit(result) {
     return new Promise((resolve, reject) => {
@@ -310,7 +312,7 @@ function submit(result) {
             .then(res => {
                 let {code, msg, success, data} = res.body;
                 if (code === 200 && success) {
-                    log.d(`交卷成功! ${JSON.stringify(data)}`);
+                    log.d(JSON.stringify(data));
 
                     let {recordId, useTime, totalScore, totalRight, totalWrong, overPercen} = data;
                     let w_tt = useTime.split(':');
@@ -321,8 +323,13 @@ function submit(result) {
                     } else {
                         useTime = w_tt[2] + "秒";
                     }
-                    log.d(`总分:${totalScore}, 用时${useTime}`);
-                    log.d(`正确: ${totalRight}, 错误: ${totalWrong}, 超过了${overPercen}的人`);
+                    log.i(DIVIDER);
+                    log.i('交卷成功!');
+                    log.i(DIVIDER);
+                    log.i(`恭喜您! 超过了全省 ${overPercen} 的参赛者`);
+                    log.i(`总分: ${totalScore}, 用时${useTime}`);
+                    log.i(`正确: ${totalRight}, 错误: ${totalWrong}`);
+                    log.i(DIVIDER);
 
                     resolve(totalScore);
                 } else {
@@ -340,11 +347,10 @@ async function printUserInfo(userType, hassh) {
     let userInfo = await Promise.all([getLeftChance(userType, headers), getRankList(headers)]);
     let leftChance = userInfo[0];
     let {rankList, rankme: {id, orgName, totalScore, avgScore, avgTime, myRank, participationCount}, nowTime} = userInfo[1];
-    const DIVIDER = '----------------------------------------------------------------';
     log.i(DIVIDER);
     log.i(`${id}: ${orgName}.`);
     log.i(DIVIDER);
-    log.i(`排名      ${myRank}`);
+    log.i(`全省排名  ${myRank}`);
     log.i(`平均用时  ${avgTime}`);
     log.i(`答题次数  ${participationCount}`);
     log.i(`总得分    ${totalScore}`);
