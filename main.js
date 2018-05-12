@@ -206,12 +206,10 @@ function handleResult(subject, queryResult) {
  * @param userType
  * @returns {Promise<any>}
  */
-function getLeftChance(userType) {
-    let headers = Object.assign({}, mockHeaders);
-    headers['Referer'] = 'http://xxjs.dtdjzx.gov.cn/';
+function getLeftChance(userType, headers) {
     log.d(JSON.stringify(headers));
     let q = {userType};
-    if(userType === 0) q.orgId = 0;
+    if (userType === 0) q.orgId = 0;
     return new Promise((resolve, reject) => {
         request
             .get(`${baseUrl}/quiz-api/game_info/user_left_chance`)
@@ -220,13 +218,35 @@ function getLeftChance(userType) {
             .then(res => {
                 let {code, msg, success, data} = res.body;
                 if (code === 200 && success) {
-                    log.d(`您今天有${data}次答题机会.`)
                     resolve(data);
                 } else {
-                    reject(msg);
+                    reject(`getLeftChance: ${code} ${msg}`);
                 }
             })
             .catch(err => log.e(err));
+    });
+}
+
+/**
+ * 查询排名和个人答题情况
+ * @param headers
+ * @returns {Promise<any>}
+ */
+function getRankList(headers) {
+    log.d(JSON.stringify(headers));
+    return new Promise((resolve, reject) => {
+        request
+            .get(`${baseUrl}/quiz-api/personal_rank/weblist?page=0&gameRoundId=`)
+            .set(headers)
+            .then(res => {
+                let {code, msg, success, data} = res.body;
+                if (code === 200 && success) {
+                    resolve(data);
+                } else {
+                    reject(`getRankList: ${code} ${msg}`)
+                }
+            });
+
     });
 }
 
@@ -313,18 +333,45 @@ function submit(result) {
     });
 }
 
+async function printUserInfo(userType, hassh) {
+    //查询个人信息的header
+    let headers = Object.assign({}, mockHeaders);
+    headers['Referer'] = `http://xxjs.dtdjzx.gov.cn/index.html?h=${hassh}`;
+    let userInfo = await Promise.all([getLeftChance(userType, headers), getRankList(headers)]);
+    let leftChance = userInfo[0];
+    let {rankList, rankme: {id, orgName, totalScore, avgScore, avgTime, myRank, participationCount}, nowTime} = userInfo[1];
+    const DIVIDER = '----------------------------------------------------------------';
+    log.i(DIVIDER);
+    log.i(`${id}: ${orgName}.`);
+    log.i(DIVIDER);
+    log.i(`排名      ${myRank}`);
+    log.i(`平均用时  ${avgTime}`);
+    log.i(`答题次数  ${participationCount}`);
+    log.i(`总得分    ${totalScore}`);
+    log.i(`平均分    ${avgScore}`);
+    log.i(DIVIDER);
+    log.i(`[${nowTime}]`);
+    log.i(DIVIDER);
+    log.i(`您今天有${leftChance}次答题机会.`);
+    return leftChance > 0;
+}
+
 async function main() {
     try {
         //登录
         let {usetype, hassh, session} = await login(argv.i);
         //更新请求头
+        //答题用headers
         mockHeaders['user_hash'] = hassh;
         if (session)
             mockHeaders['Cookie'] = session;
 
-        //当天剩余答题次数
-        let leftChance = await getLeftChance(usetype);
-        // if (leftChance === 0) return;
+        //查询个人信息
+        let allow = await printUserInfo(usetype, hassh);
+        if (!allow) {
+            log.e('今天答题次数已达上限或者不在答题时间!');
+            return;
+        }
 
         //获取试题
         let subject = await getSubjectInfoList();

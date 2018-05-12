@@ -1,0 +1,148 @@
+{
+  "msg": "操作成功!",
+  "code": 200,
+  "success": true,
+  "data": {
+    "selfScore": 100,
+    "selfRank": "773861",
+    "rankList": [
+      {
+        "id": "孙*勇",
+        "avgTime": "23.26秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "姬*飞",
+        "avgTime": "24.86秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "刘*玲",
+        "avgTime": "25.29秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "王*华",
+        "avgTime": "25.35秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "宋*峰",
+        "avgTime": "25.35秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "朱*亮",
+        "avgTime": "25.37秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "修*军",
+        "avgTime": "25.37秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "朱*英",
+        "avgTime": "25.38秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "宋*振",
+        "avgTime": "25.39秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "151****2927",
+        "avgTime": "25.39秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "吕*强",
+        "avgTime": "25.43秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "王*星",
+        "avgTime": "25.43秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "付*强",
+        "avgTime": "25.44秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "石*福",
+        "avgTime": "25.47秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "许*华",
+        "avgTime": "25.48秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "段*敬",
+        "avgTime": "25.49秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "朱*客",
+        "avgTime": "25.50秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "宋*香",
+        "avgTime": "25.53秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "夏*高",
+        "avgTime": "25.55秒",
+        "totalScore": 300,
+        "participationCount": 3
+      },
+      {
+        "id": "王*军",
+        "avgTime": "25.55秒",
+        "totalScore": 300,
+        "participationCount": 3
+      }
+    ],
+    "rankme": {
+      "id": "李*狗",
+      "avgTime": "32.12秒",
+      "totalScore": 100,
+      "participationCount": 1,
+      "userType": null,
+      "gameId": "rmc123mh16jj8qab75j8068ueu",
+      "orgName": "中国共产党**市**区**支部委员会",
+      "participantId": "等于hassh",
+      "gameRoundId": "",
+      "myRank": "773861",
+      "status": "ENABLED",
+      "avgScore": 100,
+      "totalTime": null
+    },
+    "nowTime": "2018年05月12日 07:00 更新"
+  },
+  "ext": null
+}
