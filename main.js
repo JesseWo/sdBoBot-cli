@@ -187,11 +187,14 @@ function handleResult(subject, queryResult) {
 
         let answer = readlineSync.question(`答题完成, 已耗时 ${getUsedTime()}秒, 是否交卷? (Y/N)`).trim().toUpperCase();
         if (answer === 'Y') {
-            let delay = readlineSync.question(`请输入交卷延时(建议大于${20 - Math.ceil(getUsedTime())}秒):`).trim().toUpperCase();
-            while (!delay.match(/^[\d]+$/g)) {
-                delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
+            let delay = 0;
+            if (getUsedTime() < MIN_USED_TIME) {
+                delay = readlineSync.question(`请输入交卷延时(建议大于${20 - Math.ceil(getUsedTime())}秒):`).trim().toUpperCase();
+                while (!delay.match(/^[\d]+$/g)) {
+                    delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
+                }
+                delay = delay + getUsedTime() >= MIN_USED_TIME ? delay : MIN_USED_TIME - Math.floor(getUsedTime());
             }
-            delay = delay + getUsedTime() >= MIN_USED_TIME ? delay : MIN_USED_TIME - Math.floor(getUsedTime());
             //倒计时
             let intervalId = setInterval(() => {
                 log.w(`${delay--}秒后交卷...`);
@@ -372,8 +375,22 @@ async function printUserInfo(userType, hassh) {
     return leftChance > 0;
 }
 
+function welcome() {
+    return new Promise(resolve => {
+        let confirm = readlineSync.question(`欢迎使用灯塔在线答题机器人sdBobot. 
+用机器代替人类去做简单重复性的劳动是大势所趋, 人类应该花更多的时间投入到更有价值和意义的事情中去, 比如推进个人成长,家庭幸福,事业进步.
+开发此软件的目的仅是为了自用, 以及顺便学习node.js, 因此使用此软件答题造成的一切后果与开发者无关.
+同意并继续使用请输入 Y 并回车,不同意请输入 N 后回车.
+`).trim().toUpperCase();
+        resolve(confirm === 'Y');
+    });
+}
+
 async function main() {
     try {
+        let agree = await welcome();
+        if (!agree) return;
+
         //登录
         let {usetype, hassh, session} = await login(argv.i);
         //更新请求头

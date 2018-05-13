@@ -320,7 +320,6 @@ async function onLoginSuccess({username, password}, cookie_xsession) {
 }
 
 async function main(identity) {
-    log.i('你好, 我是灯塔在线答题机器人 sdBobot');
     let objs;
     if (identity === "people") {
         //群众
