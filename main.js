@@ -125,7 +125,7 @@ function handleResult(subject, queryResult) {
             log.e(`有${Object.values(failureMap).length}个问题查询失败!\n`);
 
             for (let key in failureMap) {
-                let index = key;
+                let index = parseInt(key);
                 let item = failureMap[key];
                 const subjectTitle = item.subjectTitle;
                 const subjectType = item.subjectType;
@@ -359,7 +359,7 @@ async function printUserInfo(userType, hassh) {
     log.i(DIVIDER);
     log.i(`[${nowTime}]`);
     log.i(DIVIDER);
-    log.i(`您今天有${leftChance}次答题机会.`);
+    log.w(`您今天有${leftChance}次答题机会.`);
     return leftChance > 0;
 }
 
