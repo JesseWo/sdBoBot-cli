@@ -36,6 +36,10 @@ const readlineSync = require('readline-sync');
 const DIVIDER = '----------------------------------------------------------------';
 
 let failureList;
+//最少答题时间(秒) 目前排行榜最快是22.92
+const MIN_USED_TIME = 22;
+
+let startTime;
 
 /**
  * mock 点击数据
@@ -181,16 +185,16 @@ function handleResult(subject, queryResult) {
             clickY
         };
 
-        let answer = readlineSync.question('答题完成,是否交卷? (Y/N)').trim().toUpperCase();
+        let answer = readlineSync.question(`答题完成, 已耗时 ${getUsedTime()}秒, 是否交卷? (Y/N)`).trim().toUpperCase();
         if (answer === 'Y') {
-            let delay = readlineSync.question('请输入交卷延时(建议大于15秒):').trim().toUpperCase();
-            while (!delay.match(/^[\d]+$/g) || delay < 15) {
+            let delay = readlineSync.question(`请输入交卷延时(建议大于${20 - Math.ceil(getUsedTime())}秒):`).trim().toUpperCase();
+            while (!delay.match(/^[\d]+$/g)) {
                 delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
             }
-            delay = Math.floor(delay);
+            delay = delay + getUsedTime() >= MIN_USED_TIME ? delay : MIN_USED_TIME - Math.floor(getUsedTime());
             //倒计时
             let intervalId = setInterval(() => {
-                log.d(`${delay--}秒后交卷...`);
+                log.w(`${delay--}秒后交卷...`);
                 if (delay <= 0) {
                     clearInterval(intervalId);
                     resolve(result)
@@ -202,6 +206,10 @@ function handleResult(subject, queryResult) {
             reject('输入错误, 暂不交卷...');
         }
     });
+}
+
+function getUsedTime() {
+    return (new Date().getTime() - startTime) / 1000;
 }
 
 /**
@@ -282,6 +290,7 @@ function getSubjectInfoList() {
                         });
                     }
 
+                    startTime = new Date().getTime();
                     log.d(`开始答题, 共计${data.totalSubject}题.\n`);
                     resolve(data);
                 } else {
