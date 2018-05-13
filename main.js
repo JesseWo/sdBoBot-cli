@@ -3,7 +3,7 @@
 /**
  * 控制train_data输出
  */
-const {debug, myUrl, baseUrl, mockHeaders} = require('./config');
+const {debug, myUrl, baseUrl, mockHeaders, mimUsedTime: MIN_USED_TIME} = require('./config');
 
 //解析命令行参数
 let argv = require('yargs')
@@ -36,8 +36,6 @@ const readlineSync = require('readline-sync');
 const DIVIDER = '----------------------------------------------------------------';
 
 let failureList;
-//最少答题时间(秒) 目前排行榜最快是22.92
-const MIN_USED_TIME = 22;
 
 let startTime;
 
