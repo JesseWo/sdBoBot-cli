@@ -185,14 +185,15 @@ function handleResult(subject, queryResult) {
 
         let answer = readlineSync.question(`答题完成, 已耗时 ${getUsedTime()}秒, 是否交卷? (Y/N)`).trim().toUpperCase();
         if (answer === 'Y') {
-            let delay = 0;
+            let tips = '';
             if (getUsedTime() < MIN_USED_TIME) {
-                delay = readlineSync.question(`请输入交卷延时(建议大于${20 - Math.ceil(getUsedTime())}秒):`).trim().toUpperCase();
-                while (!delay.match(/^[\d]+$/g)) {
-                    delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
-                }
-                delay = delay + getUsedTime() >= MIN_USED_TIME ? delay : MIN_USED_TIME - Math.floor(getUsedTime());
+                tips = `(建议大于${20 - Math.ceil(getUsedTime())}秒)`;
             }
+            let delay = readlineSync.question(`请输入交卷延时${tips}: `).trim().toUpperCase();
+            while (!delay.match(/^[\d]+$/g)) {
+                delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
+            }
+            delay = Math.ceil(delay + getUsedTime() >= MIN_USED_TIME ? delay : MIN_USED_TIME - getUsedTime());
             //倒计时
             let intervalId = setInterval(() => {
                 log.w(`${delay--}秒后交卷...`);
@@ -357,15 +358,20 @@ async function printUserInfo(userType, hassh) {
     headers['Referer'] = `http://xxjs.dtdjzx.gov.cn/index.html?h=${hassh}`;
     let userInfo = await Promise.all([getLeftChance(userType, headers), getRankList(headers)]);
     let leftChance = userInfo[0];
-    let {rankList, rankme: {id, orgName, totalScore, avgScore, avgTime, myRank, participationCount}, nowTime} = userInfo[1];
+    let {rankList, selfScore, selfRank, rankme, nowTime} = userInfo[1];
     log.i(DIVIDER);
-    log.i(`${id}: ${orgName}.`);
-    log.i(DIVIDER);
-    log.i(`全省排名  ${myRank}`);
-    log.i(`平均用时  ${avgTime}`);
-    log.i(`答题次数  ${participationCount}`);
-    log.i(`总得分    ${totalScore}`);
-    log.i(`平均分    ${avgScore}`);
+    if (rankme) {
+        let {id, orgName, totalScore, avgScore, avgTime, myRank, participationCount} = rankme;
+        log.i(`${id}: ${orgName}.`);
+        log.i(DIVIDER);
+        log.i(`全省排名  ${myRank}`);
+        log.i(`平均用时  ${avgTime}`);
+        log.i(`答题次数  ${participationCount}`);
+        log.i(`总得分    ${totalScore}`);
+        log.i(`平均分    ${avgScore}`);
+    } else {
+        log.i(`${selfRank}: ${selfScore}.`);
+    }
     log.i(DIVIDER);
     log.i(`[${nowTime}]`);
     log.i(DIVIDER);

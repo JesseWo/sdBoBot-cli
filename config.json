@@ -1,5 +1,5 @@
 {
-  "debug": false,
+  "debug": true,
   "myUrl": "http://wooox.320.io:3110",
   "baseUrl": "http://xxjs.dtdjzx.gov.cn",
   "loginBaseUrl": "https://sso.dtdjzx.gov.cn",
@@ -10,5 +10,5 @@
     "Referer": "http://xxjs.dtdjzx.gov.cn/kaishijingsai.html",
     "system-type": "web"
   },
-  "mimUsedTime": 23
+  "mimUsedTime": 26
 }
