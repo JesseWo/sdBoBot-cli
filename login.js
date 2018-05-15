@@ -40,8 +40,8 @@ function checkLogin() {
     }
     if (hassh && xSession) {
         log.d('检测到缓存的登录信息!');
-        let useCache = readlineSync.question(`检测到上次登录账号:${username}, 若继续登录请直接回车,若更换账号请输入 N 后回车: `).trim();
-        if (!/^[N]$/i.test(useCache)) {
+        if (readlineSync.keyInYN(`检测到上次登录账号:${username}. Y 继续登录此账号, N 登录其它账号`)) {
+            // 'Y' key was pressed.
             return {
                 usetype: "0",
                 hassh: hassh,
@@ -114,13 +114,15 @@ async function collectLoginInfo() {
             log.d(`vcode ocr result: ${validateCode}`);
         }
         //提示用户输入用户名和密码
-        let username, password;
-        while (!MOBILE_REG.test(username)) {
-            username = readlineSync.question('请输入用户名(手机号):').trim();
-        }
-        while (!password) {
-            password = readlineSync.question('请输入密码:').trim();
-        }
+        let username = readlineSync.question('请输入用户名(手机号):', {
+            limit: MOBILE_REG,
+            limitMessage: 'Sorry, $<lastInput> is not a valid mobile number.'
+        });
+        let password = readlineSync.question('请输入密码:', {
+            limit: /\S/,
+            limitMessage: 'Sorry, $<lastInput> is not a valid password.',
+            // hideEchoBack: true // The typed text on screen is hidden by `*` (default).
+        });
         //若未能识别则缓存验证码图片并自动打开,手动输入
         if (!validateCode) {
             //缓存验证码图片
@@ -136,9 +138,10 @@ async function collectLoginInfo() {
             //自动打开图片
             openImage(vcodePath);
             //提示用户输入 验证码
-            do {
-                validateCode = readlineSync.question('请输入验证码:').trim();
-            } while (!validateCode);
+            validateCode = readlineSync.question('请输入验证码:', {
+                limit: /\S/,
+                limitMessage: 'Sorry, $<lastInput> is not a valid validate Code.',
+            });
         }
         return {
             username: username,
@@ -323,10 +326,10 @@ async function main(identity) {
     let objs;
     if (identity === "people") {
         //群众
-        let mobile = readlineSync.question('您的身份是[群众],请输入手机号开始答题: ').trim();
-        while (!mobile.match(MOBILE_REG)) {
-            mobile = readlineSync.question('手机号格式错误,请重新输入:\n').trim();
-        }
+        let mobile = readlineSync.question('您的身份是[群众],请输入手机号开始答题: ', {
+            limit: MOBILE_REG,
+            limitMessage: 'Sorry, $<lastInput> is not a valid mobile number.'
+        });
         objs = {
             usetype: "1",
             hassh: mobile,

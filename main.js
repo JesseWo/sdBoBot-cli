@@ -136,15 +136,13 @@ function handleResult(subject, queryResult) {
                 log.i(`${index + 1}.[${subjectType === '0' ? '单选' : '多选'}] ${subjectTitle}`);
                 optionInfoList.forEach(opt => log.i(`${opt.optionType}.${opt.optionTitle}`));
 
-                let inputStr = readlineSync.question('请输入答案(示例: 若单选则输入 A ;若多选则输入 ABC): ').trim().toUpperCase();
-                // // Handle the secret text (e.g. password).
-                // var favFood = readlineSync.question('What is your favorite food? ', {
-                //     hideEchoBack: true // The typed text on screen is hidden by `*` (default).
-                // });
-                while ((subjectType === '0' && !inputStr.match(/^[A-D]{1}$/g))
-                || (subjectType === '1' && !inputStr.match(/^[A-D]{1,4}$/g))) {
-                    inputStr = readlineSync.question('输入格式错误, 请重新输入:').trim().toUpperCase();
-                }
+                let inputStr = readlineSync.question('请输入答案(示例: 若单选则输入 A ;若多选则输入 ABC): ', {
+                    limit: input => {
+                        return (subjectType === '0' && input.match(/^[A-D]{1}$/i))
+                            || (subjectType === '1' && input.match(/^[A-D]{1,4}$/i));
+                    },
+                    limitMessage: '输入格式错误'
+                }).toUpperCase();
                 let correctedOpts = inputStr.match(/./g).join(',');
                 log.w(`您输入的是: ${correctedOpts}\n`);
                 //将输入的答案添加到错题集里
@@ -183,16 +181,15 @@ function handleResult(subject, queryResult) {
             clickY
         };
 
-        let answer = readlineSync.question(`答题完成, 已耗时 ${getUsedTime()}秒, 是否交卷? (Y/N)`).trim().toUpperCase();
-        if (answer === 'Y') {
+        if (readlineSync.keyInYN(`答题完成, 已耗时 ${getUsedTime()}秒, 是否交卷? `)) {
             let tips = '';
             if (getUsedTime() < MIN_USED_TIME) {
                 tips = `(建议大于${20 - Math.ceil(getUsedTime())}秒)`;
             }
-            let delay = readlineSync.question(`请输入交卷延时${tips}: `).trim().toUpperCase();
-            while (!delay.match(/^[\d]+$/g)) {
-                delay = readlineSync.question('格式错误,请重新输入:').trim().toUpperCase();
-            }
+            let delay = readlineSync.question(`请输入交卷延时${tips}: `, {
+                limit: /^[\d]+$/g,
+                limitMessage: '格式错误'
+            });
             delay = Math.ceil(delay + getUsedTime() >= MIN_USED_TIME ? delay : MIN_USED_TIME - getUsedTime());
             //倒计时
             let intervalId = setInterval(() => {
@@ -202,10 +199,8 @@ function handleResult(subject, queryResult) {
                     resolve(result)
                 }
             }, 1000);
-        } else if (answer === 'N') {
-            log.d('暂不交卷...');
         } else {
-            reject('输入错误, 暂不交卷...');
+            reject('暂不交卷.');
         }
     });
 }
@@ -381,11 +376,10 @@ async function printUserInfo(userType, hassh) {
 
 function welcome() {
     return new Promise(resolve => {
-        let confirm = readlineSync.question(`欢迎使用灯塔在线答题机器人sdBobot. 
+        const TIPS = `欢迎使用灯塔在线答题机器人sdBobot. 
 用机器代替人类去做简单重复性的劳动是大势所趋, 人类应该花更多的时间投入到更有价值和意义的事情中去, 比如推进个人成长,家庭幸福,事业进步.
-开发此软件的目的仅是为了自用, 以及顺便学习node.js, 因此使用此软件答题造成的一切后果与开发者无关.
-同意并继续使用请输入 Y 并回车,不同意请输入 N 后回车.`).trim().toUpperCase();
-        resolve(confirm === 'Y');
+开发此软件的目的仅是为了自用, 以及顺便学习node.js, 因此使用此软件答题造成的一切后果与开发者无关.`;
+        resolve(readlineSync.keyInYN(TIPS));
     });
 }
 
