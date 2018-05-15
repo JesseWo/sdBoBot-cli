@@ -1,5 +1,5 @@
 {
-  "debug": true,
+  "debug": false,
   "myUrl": "http://wooox.320.io:3110",
   "baseUrl": "http://xxjs.dtdjzx.gov.cn",
   "loginBaseUrl": "https://sso.dtdjzx.gov.cn",
