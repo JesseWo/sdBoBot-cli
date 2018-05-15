@@ -1,6 +1,6 @@
 {
   "name": "BeaconOnlineBot",
-  "version": "0.9.10",
+  "version": "0.9.11",
   "description": "灯塔在线答题机器人",
   "main": "main.js",
   "scripts": {
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "colors": "latest",
+    "iconv-lite": "^0.4.23",
     "open": "latest",
     "readline-sync": "latest",
     "superagent": "^3.8.3",

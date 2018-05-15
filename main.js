@@ -384,8 +384,7 @@ function welcome() {
         let confirm = readlineSync.question(`欢迎使用灯塔在线答题机器人sdBobot. 
 用机器代替人类去做简单重复性的劳动是大势所趋, 人类应该花更多的时间投入到更有价值和意义的事情中去, 比如推进个人成长,家庭幸福,事业进步.
 开发此软件的目的仅是为了自用, 以及顺便学习node.js, 因此使用此软件答题造成的一切后果与开发者无关.
-同意并继续使用请输入 Y 并回车,不同意请输入 N 后回车.
-`).trim().toUpperCase();
+同意并继续使用请输入 Y 并回车,不同意请输入 N 后回车.`).trim().toUpperCase();
         resolve(confirm === 'Y');
     });
 }
