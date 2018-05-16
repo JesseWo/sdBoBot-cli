@@ -275,18 +275,6 @@ function getSubjectInfoList() {
             .then(res => {
                 let {code, msg, success, data} = res.body;
                 if (code === 200 && success) {
-                    //缓存试题
-                    if (debug) {
-                        let jString = JSON.stringify(data);
-                        fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
-                            if (err) {
-                                log.e(err);
-                            } else {
-                                log.d('试题缓存ok.');
-                            }
-                        });
-                    }
-
                     startTime = new Date().getTime();
                     log.d(`开始答题, 共计${data.totalSubject}题.\n`);
                     resolve(data);
