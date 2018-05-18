@@ -26,7 +26,6 @@ const request = require('superagent');
 const fs = require('fs');
 const log = require('./utils/logUtils');
 const dateFormat = require('./utils/dateUtils');
-const random = require('./utils/randomUtils');
 //登录模块
 const login = require('./login');
 
@@ -40,54 +39,17 @@ let failureList;
 let startTime;
 
 /**
- * mock 点击数据
- * 下一题按钮
- * 左上角(552,804)
- * 右下角(644,832)
- */
-function mockHumanBehaviors(totalSubject) {
-    let clickTimes = totalSubject - 1;
-    let clientXArr = [];
-    let clientXArrY = [];
-    let maxArr = [];
-    let obj = {};
-    for (let i = 0; i < clickTimes; i++) {
-        let x = random(552, 644);
-        clientXArr.push(x);
-        let y = random(804, 832);
-        clientXArrY.push(y);
-
-        if (obj[x]) {
-            obj[x]++;
-            maxArr.push(obj[clientXArr[i]]);
-        } else {
-            obj[x] = 1
-        }
-    }
-    maxArr = maxArr.sort(function (x, y) {
-        return x - y
-    });
-    let repeatX = maxArr.length > 0 ? maxArr[maxArr.length - 1] : 0; //重复x 坐标的次数
-
-    return {
-        sameNum: repeatX,
-        clickX: clientXArr.join(','),
-        clickY: clientXArrY.join(',')
-    };
-}
-
-/**
  * 查询答案
  * @param userId
- * @param subjectInfoList
+ * @param subject
  * @returns {Promise<any>}
  */
-function queryAnswer(userId, subjectInfoList) {
+function queryAnswer(userId, subject) {
     log.d('答案查询中...');
     return new Promise((resolve, reject) => {
         request
             .post(myUrl + "/sdbeacononline/queryanswer")
-            .send({userId, subjectInfoList})
+            .send({userId, subject})
             .then(res => {
                 let queryResult = res.body.data;
                 log.i(queryResult.queryLog);
@@ -113,14 +75,12 @@ function updateFailureList(failureList) {
 
 /**
  * 构建交卷的body
- * @param subject
  * @param queryResult
  * @returns {Promise<any>}
  */
-function handleResult(subject, queryResult) {
+function handleResult(queryResult) {
     return new Promise((resolve, reject) => {
-        const {recordId, roundOnlyId, orderId, totalSubject} = subject;
-        let {answerList, failureMap} = queryResult;
+        let {answer, failureMap} = queryResult;
 
         //对于查询失败的问题抛给用户
         if (failureMap) {
@@ -159,27 +119,14 @@ function handleResult(subject, queryResult) {
                 }
 
                 //构建手动输入的结果
-                let answer = {};
-                answer.id = item.id;
-                answer.answer = correctedOpts;
+                let manualAnswer = {};
+                manualAnswer.id = item.id;
+                manualAnswer.answer = correctedOpts;
                 //按照原来的顺序插入元素
-                answerList.splice(index, 0, answer);
+                answer.subjectInfoList.splice(index, 0, manualAnswer);
             }
             failureList = Object.values(failureMap);
         }
-
-        //模拟点击数据
-        let {sameNum, clickX, clickY} = mockHumanBehaviors(totalSubject);
-        //构建交卷body
-        let result = {
-            recordId,
-            roundOnlyId,
-            orderId,
-            subjectInfoList: answerList,
-            sameNum,
-            clickX,
-            clickY
-        };
 
         if (readlineSync.keyInYN(`答题完成, 已耗时 ${getUsedTime()}秒, 是否交卷? `)) {
             let tips = '';
@@ -196,7 +143,7 @@ function handleResult(subject, queryResult) {
                 log.w(`${delay--}秒后交卷...`);
                 if (delay <= 0) {
                     clearInterval(intervalId);
-                    resolve(result)
+                    resolve(answer)
                 }
             }, 1000);
         } else {
@@ -275,7 +222,7 @@ function getSubjectInfoList() {
             .then(res => {
                 let {code, msg, success, data} = res.body;
                 if (code === 200 && success) {
-                    //缓存试题
+                    /*//缓存试题
                     if (debug) {
                         let jString = JSON.stringify(data);
                         fs.writeFile(`train_data/subjectInfoList-${dateFormat('yyyyMMdd_HH-mm-ss')}.json`, jString, (err) => {
@@ -285,7 +232,7 @@ function getSubjectInfoList() {
                                 log.d('试题缓存ok.');
                             }
                         });
-                    }
+                    }*/
 
                     startTime = new Date().getTime();
                     log.d(`开始答题, 共计${data.totalSubject}题.\n`);
@@ -407,10 +354,10 @@ async function main() {
         let subject = await getSubjectInfoList();
 
         //查询答案
-        let queryResult = await queryAnswer(hassh, subject.subjectInfoList);
+        let queryResult = await queryAnswer(hassh, subject);
 
         //请求交卷,交卷延时
-        let result = await handleResult(subject, queryResult);
+        let result = await handleResult(queryResult);
 
         //交卷
         let score = await submit(result);
