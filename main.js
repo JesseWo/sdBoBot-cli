@@ -55,9 +55,7 @@ function queryAnswer(userId, subject) {
                 log.i(queryResult.queryLog);
                 resolve(queryResult);
             })
-            .catch(err => {
-                log.e(err);
-            })
+            .catch(err => reject(err))
     });
 }
 
@@ -178,7 +176,7 @@ function getLeftChance(userType, headers) {
                     reject(`getLeftChance: ${code} ${msg}`);
                 }
             })
-            .catch(err => log.e(err));
+            .catch(err => reject(err));
     });
 }
 
@@ -200,7 +198,8 @@ function getRankList(headers) {
                 } else {
                     reject(`getRankList: ${code} ${msg}`)
                 }
-            });
+            })
+            .catch(err => reject(err));
 
     });
 }
@@ -241,7 +240,7 @@ function getSubjectInfoList() {
                     reject(`getSubjectInfoList: ${code} Error ${msg}`);
                 }
             })
-            .catch(err => log.e(err));
+            .catch(err => reject(err));
     });
 }
 
@@ -290,35 +289,40 @@ function submit(result) {
                     reject(`交卷失败! ${code} Error ${msg}`);
                 }
             })
-            .catch(err => log.e(err));
+            .catch(err => reject(err));
     });
 }
 
 async function printUserInfo(userType, hassh) {
-    //查询个人信息的header
-    let headers = Object.assign({}, mockHeaders);
-    headers['Referer'] = `http://xxjs.dtdjzx.gov.cn/index.html?h=${hassh}`;
-    let userInfo = await Promise.all([getLeftChance(userType, headers), getRankList(headers)]);
-    let leftChance = userInfo[0];
-    let {rankList, selfScore, selfRank, rankme, nowTime} = userInfo[1];
-    log.i(DIVIDER);
-    if (rankme) {
-        let {id, orgName, totalScore, avgScore, avgTime, myRank, participationCount} = rankme;
-        log.i(`${id}: ${orgName}.`);
+    try {
+        //查询个人信息的header
+        let headers = Object.assign({}, mockHeaders);
+        headers['Referer'] = `http://xxjs.dtdjzx.gov.cn/index.html?h=${hassh}`;
+        let userInfo = await Promise.all([getLeftChance(userType, headers), getRankList(headers)]);
+        let leftChance = userInfo[0];
+        let {rankList, selfScore, selfRank, rankme, nowTime} = userInfo[1];
         log.i(DIVIDER);
-        log.i(`全省排名  ${myRank}`);
-        log.i(`平均用时  ${avgTime}`);
-        log.i(`答题次数  ${participationCount}`);
-        log.i(`总得分    ${totalScore}`);
-        log.i(`平均分    ${avgScore}`);
-    } else {
-        log.i(`${selfRank}: ${selfScore}.`);
+        if (rankme) {
+            let {id, orgName, totalScore, avgScore, avgTime, myRank, participationCount} = rankme;
+            log.i(`${id}: ${orgName}.`);
+            log.i(DIVIDER);
+            log.i(`全省排名  ${myRank}`);
+            log.i(`平均用时  ${avgTime}`);
+            log.i(`答题次数  ${participationCount}`);
+            log.i(`总得分    ${totalScore}`);
+            log.i(`平均分    ${avgScore}`);
+        } else {
+            log.i(`${selfRank}: ${selfScore}.`);
+        }
+        log.i(DIVIDER);
+        log.i(`[${nowTime}]`);
+        log.i(DIVIDER);
+        log.w(`您今天有${leftChance}次答题机会.`);
+        return leftChance > 0;
+    } catch (error) {
+        log.e(error);
+        return true;
     }
-    log.i(DIVIDER);
-    log.i(`[${nowTime}]`);
-    log.i(DIVIDER);
-    log.w(`您今天有${leftChance}次答题机会.`);
-    return leftChance > 0;
 }
 
 function welcome() {
