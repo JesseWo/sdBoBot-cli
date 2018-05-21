@@ -1,20 +1,22 @@
-## sdBeaconOnline 半自动答题机器人
+## sdBoBot 答题机器人
 一键 登录(验证码OCR识别) + 更新题库 + 获取试题 + 自动答题 + 交卷
 
+## Abstract
+- 基于灯塔在线的Web版本
+- 环境: node.js
+- 支持平台:
+    - 各Linux发行版
+    - Mac OS
+    - Android (需配合 [Termux](https://termux.com/) 使用)
+    
+> Windows因中文字符乱码问题暂不支持.
+
+## ChangeLog
 > 2018.05.11更新:
 > 1. 更新2017.12-2018.05所有题库
 > 2. 前后端分离, **[Server端](https://github.com/JesseWo/sdBeaconOnlineBot-server)** 主要集成功能: 登录验证码OCR | 答案检索 | 错题集
 
-
 #### 附: [给普通用户的使用说明](https://www.jianshu.com/p/2f32b76b9bf4)
-
-## 声明
-此project仅为个人学习node.js所用,若用于他用,后果请自负...
-
-- 基于dengta的Web版本
-- 环境: node
-
-> 鉴于个人能力有限, 不懂各种复杂的模糊匹配算法, 目前答案检索成功率并不是100%, 检索失败的题目还需要人工输入答案...
 
 # 运行示例
 ![运行示例1](./images/sample1.png)![运行示例2](./images/sample2.png)
@@ -45,10 +47,13 @@ npm start
 1. 模糊匹配算法, 提高检索成功率;
 2. ~~登录模块(验证码OCR自动识别)~~
 3. ~~建立云端错题集, 用的次数越多准确率越高;~~
+4. 解决Windows上中文字符乱码问题
 
 ## License
 GPL-3.0
 
+## 声明
+此project仅为个人学习node.js所用,若用于他用,后果请自负...
 
 ## 来杯咖啡
 ---
